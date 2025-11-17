@@ -60,10 +60,10 @@ export default function DailyHabits() {
   }
 
   const getPartnerName = (habit) => {
-    const today = getTodayDate()
-    const completions = habit.completions || {}
-    const users = Object.keys(completions[today] || {}).filter(key => key !== 'both')
-    const partnerEmail = users.find(email => email !== currentUser.email)
+    // Find partner email from any completion
+    const partnerEmail = Object.values(userProfiles).find(
+      profile => profile.email !== currentUser.email
+    )?.email
     
     if (!partnerEmail) return 'Partner'
     
@@ -311,15 +311,22 @@ export default function DailyHabits() {
                   </button>
                   
                   <div className="flex-1">
-                    <h3
-                      className={`text-lg font-medium ${
-                        completed
-                          ? 'line-through text-gray-500 dark:text-gray-400'
-                          : 'text-gray-800 dark:text-gray-100'
-                      }`}
-                    >
-                      {habit.habit}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3
+                        className={`text-lg font-medium ${
+                          completed
+                            ? 'line-through text-gray-500 dark:text-gray-400'
+                            : 'text-gray-800 dark:text-gray-100'
+                        }`}
+                      >
+                        {habit.habit}
+                      </h3>
+                      {streak > 0 && (
+                        <span className="text-xs bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-1 rounded-full font-bold">
+                          🔥 {streak} day{streak !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3 mt-1">
                       <div className="flex items-center gap-1 text-sm">
                         <span className={myCompleted ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}>
@@ -330,11 +337,6 @@ export default function DailyHabits() {
                           {getPartnerName(habit)} {partnerCompleted ? '✓' : '○'}
                         </span>
                       </div>
-                      {streak > 0 && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          🔥 {streak} day streak!
-                        </p>
-                      )}
                     </div>
                   </div>
                   

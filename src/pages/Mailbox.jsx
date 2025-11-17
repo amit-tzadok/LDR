@@ -101,14 +101,14 @@ export default function Mailbox() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="card bg-gradient-to-br from-pink-50 to-green-50">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="card bg-gradient-to-br from-pink-50 to-green-50 dark:from-gray-800 dark:to-gray-700">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
             <Heart className="w-5 h-5 text-pink-500" />
             New Love Letter
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Subject
               </label>
               <input
@@ -121,7 +121,7 @@ export default function Mailbox() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Message
               </label>
               <textarea
@@ -162,7 +162,7 @@ export default function Mailbox() {
           {letters.map((letter) => (
             <div
               key={letter.id}
-              className="card hover:shadow-lg transition-shadow cursor-pointer bg-white border-2 border-pink-100"
+              className="card hover:shadow-lg transition-shadow cursor-pointer bg-white dark:bg-gray-800 border-2 border-pink-100 dark:border-pink-800"
               onClick={() => openLetter(letter)}
             >
               <div className="flex items-start justify-between">
@@ -183,10 +183,10 @@ export default function Mailbox() {
                       <span className="text-lg ml-auto">{letter.frogSticker}</span>
                     )}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
                     {letter.subject}
                   </h3>
-                  <p className="text-gray-600 line-clamp-2">
+                  <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
                     {letter.message}
                   </p>
                 </div>

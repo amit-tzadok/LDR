@@ -77,12 +77,17 @@ export default function DateIdeasByLocation() {
     return acc
   }, {})
 
-  const locations = Object.keys(ideasByLocation).sort()
+  // Sort locations alphabetically, but keep 'Someday' at the end
+  const locations = Object.keys(ideasByLocation).sort((a, b) => {
+    if (a === 'Someday / Not Specific') return 1
+    if (b === 'Someday / Not Specific') return -1
+    return a.localeCompare(b)
+  })
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Date Ideas by Location 📍</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Date Ideas by Location 📍</h1>
         <button
           onClick={() => {
             setShowForm(!showForm)
