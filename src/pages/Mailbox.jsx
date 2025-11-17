@@ -9,6 +9,7 @@ export default function Mailbox() {
   const [showForm, setShowForm] = useState(false)
   const [newLetter, setNewLetter] = useState({ subject: '', message: '', frogSticker: '' })
   const [selectedLetter, setSelectedLetter] = useState(null)
+  const [error, setError] = useState(null)
   const { currentUser } = useAuth()
   const { coupleCode } = useCouple()
 
@@ -19,10 +20,23 @@ export default function Mailbox() {
   useEffect(() => {
     console.log('Mailbox useEffect - coupleCode:', coupleCode)
     if (!coupleCode) return
-    const unsubscribe = getLetters(coupleCode, (data) => {
-      console.log('Received letters:', data)
-      setLetters(data.sort((a, b) => b.createdAt - a.createdAt))
-    })
+    setError(null)
+    const unsubscribe = getLetters(
+      coupleCode, 
+      (data) => {
+        console.log('Received letters:', data)
+        setLetters(data.sort((a, b) => b.createdAt - a.createdAt))
+        setError(null)
+      },
+      (err) => {
+        console.error('Mailbox error:', err)
+        if (err.code === 'failed-precondition') {
+          setError('Database index is being created. This may take a few minutes. Please refresh the page in a moment.')
+        } else {
+          setError('Failed to load letters: ' + err.message)
+        }
+      }
+    )
     return () => {
       if (unsubscribe) unsubscribe()
     }
@@ -80,6 +94,14 @@ export default function Mailbox() {
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
           <p className="text-yellow-800 dark:text-yellow-200 font-semibold">
             ⚠️ Couple code not loaded. Please refresh the page or check the Invite page for your couple code.
+          </p>
+        </div>
+      )}
+      
+      {error && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg p-4">
+          <p className="text-blue-800 dark:text-blue-200">
+            ℹ️ {error}
           </p>
         </div>
       )}

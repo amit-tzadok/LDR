@@ -183,7 +183,7 @@ export const deleteSpecialDate = async (id) => {
 }
 
 // Letters
-export const getLetters = (coupleCode, callback) => {
+export const getLetters = (coupleCode, callback, onError) => {
   if (!coupleCode) return () => {}
   const q = query(collection(db, 'letters'), where('coupleCode', '==', coupleCode), orderBy('createdAt', 'desc'))
   return onSnapshot(q, (snapshot) => {
@@ -191,10 +191,8 @@ export const getLetters = (coupleCode, callback) => {
     callback(letters)
   }, (error) => {
     console.error('Error in getLetters snapshot:', error)
-    console.error('Error code:', error.code)
-    console.error('Error message:', error.message)
-    if (error.code === 'failed-precondition') {
-      console.error('INDEX NEEDED! Check console for the link to create it.')
+    if (onError) {
+      onError(error)
     }
   })
 }
