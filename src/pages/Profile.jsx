@@ -89,14 +89,16 @@ export default function Profile() {
   const handleDeleteAccount = async () => {
     setDeleteLoading(true)
     try {
-      // Delete user profile from Firestore
-      await deleteDoc(doc(db, 'userProfiles', currentUser.uid))
+      const userId = currentUser.uid
       
-      // Delete Firebase Auth account
+      // Delete user profile from Firestore
+      await deleteDoc(doc(db, 'userProfiles', userId))
+      
+      // Delete Firebase Auth account (this will trigger logout automatically)
       await deleteUser(currentUser)
       
-      // Navigate to login
-      navigate('/login')
+      // Force navigate to login after deletion
+      window.location.href = '#/login'
     } catch (error) {
       console.error('Error deleting account:', error)
       if (error.code === 'auth/requires-recent-login') {
@@ -104,7 +106,6 @@ export default function Profile() {
       } else {
         alert('Failed to delete account. Please try again.')
       }
-    } finally {
       setDeleteLoading(false)
       setShowDeleteConfirm(false)
     }
