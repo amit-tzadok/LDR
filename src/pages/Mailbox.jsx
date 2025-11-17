@@ -24,7 +24,19 @@ export default function Mailbox() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (newLetter.subject.trim() && newLetter.message.trim()) {
+    
+    if (!coupleCode) {
+      alert('Error: Couple code not loaded. Please refresh the page.')
+      return
+    }
+    
+    if (!newLetter.subject.trim() || !newLetter.message.trim()) {
+      alert('Please fill in both subject and message.')
+      return
+    }
+    
+    try {
+      console.log('Sending letter with coupleCode:', coupleCode)
       await addLetter(coupleCode, {
         ...newLetter,
         from: currentUser.email,
@@ -33,6 +45,9 @@ export default function Mailbox() {
       })
       setNewLetter({ subject: '', message: '', frogSticker: '' })
       setShowForm(false)
+    } catch (error) {
+      console.error('Error sending letter:', error)
+      alert('Failed to send letter: ' + error.message)
     }
   }
 
