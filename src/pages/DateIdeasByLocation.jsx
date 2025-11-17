@@ -1,0 +1,237 @@
+import { useState, useEffect } from 'react'
+import { MapPin, Plus, Edit2, Trash2, Check, X } from 'lucide-react'
+import { subscribeDateIdeas, addDateIdea, updateDateIdea, deleteDateIdea } from '../services/firebase'
+import { useAuth } from '../contexts/AuthContext'
+
+const categories = ['Romantic', 'Movie Night', 'Games', 'Cute', 'Adventure', 'Food', 'Other']
+
+export default function DateIdeasByLocation() {
+  const [ideas, setIdeas] = useState([])
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const { currentUser } = useAuth()
+
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'Romantic',
+    location: '',
+  })
+
+  useEffect(() => {
+    const unsubscribe = subscribeDateIdeas(setIdeas)
+    return unsubscribe
+  }, [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    const ideaData = {
+      ...formData,
+      addedBy: currentUser.email,
+    }
+
+    if (editingId) {
+      await updateDateIdea(editingId, formData)
+      setEditingId(null)
+    } else {
+      await addDateIdea(ideaData)
+    }
+
+    setFormData({ title: '', description: '', category: 'Romantic', location: '' })
+    setShowForm(false)
+  }
+
+  const handleEdit = (idea) => {
+    setFormData({
+      title: idea.title,
+      description: idea.description || '',
+      category: idea.category,
+      location: idea.location || '',
+    })
+    setEditingId(idea.id)
+    setShowForm(true)
+  }
+
+  const handleToggleComplete = async (idea) => {
+    await updateDateIdea(idea.id, { completed: !idea.completed })
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this idea?')) {
+      await deleteDateIdea(id)
+    }
+  }
+
+  // Group ideas by location
+  const ideasByLocation = ideas.reduce((acc, idea) => {
+    const location = idea.location || 'Someday / Not Specific'
+    if (!acc[location]) {
+      acc[location] = []
+    }
+    acc[location].push(idea)
+    return acc
+  }, {})
+
+  const locations = Object.keys(ideasByLocation).sort()
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-800">Date Ideas by Location 📍</h1>
+        <button
+          onClick={() => {
+            setShowForm(!showForm)
+            setEditingId(null)
+            setFormData({ title: '', description: '', category: 'Romantic', location: '' })
+          }}
+          className="btn-primary inline-flex items-center gap-2"
+        >
+          {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+          {showForm ? 'Cancel' : 'Add Idea'}
+        </button>
+      </div>
+
+      {/* Form */}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="card space-y-4">
+          <h3 className="text-xl font-semibold text-gray-800">
+            {editingId ? 'Edit Idea' : 'New Date Idea'}
+          </h3>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="input"
+              required
+              placeholder="What do you want to do?"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="input"
+              rows={3}
+              placeholder="Add more details..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="input"
+              required
+            >
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              className="input"
+              placeholder="e.g., Buffalo NY 🌨️, New York City 🗽, California 🌴"
+            />
+          </div>
+
+          <button type="submit" className="btn-primary w-full">
+            {editingId ? 'Update Idea' : 'Add Idea'}
+          </button>
+        </form>
+      )}
+
+      {/* Location Groups */}
+      {locations.length === 0 ? (
+        <div className="card text-center py-12">
+          <p className="text-gray-500">No date ideas yet. Add your first one!</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {locations.map(location => (
+            <div key={location} className="space-y-3">
+              <button
+                onClick={() => setSelectedLocation(selectedLocation === location ? null : location)}
+                className="flex items-center gap-2 text-2xl font-bold text-gray-800 hover:text-pink-600 transition-colors"
+              >
+                <MapPin className="w-6 h-6" />
+                {location}
+                <span className="text-sm font-normal text-gray-500">
+                  ({ideasByLocation[location].length})
+                </span>
+              </button>
+              
+              {(selectedLocation === location || selectedLocation === null) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-8">
+                  {ideasByLocation[location].map(idea => (
+                    <div
+                      key={idea.id}
+                      className={`card ${idea.completed ? 'bg-gray-50 opacity-75' : ''}`}
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className={`text-lg font-semibold ${idea.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                              {idea.title}
+                            </h3>
+                            <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-medium">
+                              {idea.category}
+                            </span>
+                          </div>
+                          {idea.description && (
+                            <p className="text-gray-600 text-sm mb-2">{idea.description}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-2">Added by {idea.addedBy}</p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => handleToggleComplete(idea)}
+                            className={`p-2 rounded-full transition-colors ${
+                              idea.completed
+                                ? 'bg-green-100 text-green-600'
+                                : 'bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600'
+                            }`}
+                            title={idea.completed ? 'Mark incomplete' : 'Mark complete'}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(idea)}
+                            className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(idea.id)}
+                            className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
