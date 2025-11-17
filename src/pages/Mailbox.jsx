@@ -23,7 +23,9 @@ export default function Mailbox() {
       console.log('Received letters:', data)
       setLetters(data.sort((a, b) => b.createdAt - a.createdAt))
     })
-    return unsubscribe
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
   }, [coupleCode])
 
   const handleSubmit = async (e) => {

@@ -189,6 +189,13 @@ export const getLetters = (coupleCode, callback) => {
   return onSnapshot(q, (snapshot) => {
     const letters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(letters)
+  }, (error) => {
+    console.error('Error in getLetters snapshot:', error)
+    console.error('Error code:', error.code)
+    console.error('Error message:', error.message)
+    if (error.code === 'failed-precondition') {
+      console.error('INDEX NEEDED! Check console for the link to create it.')
+    }
   })
 }
 
