@@ -40,10 +40,10 @@ export default function Gratitude() {
 
   const getRandomColor = (index) => {
     const colors = [
-      'from-pink-100 to-pink-200',
-      'from-green-100 to-green-200',
-      'from-pink-100 to-green-100',
-      'from-emerald-100 to-pink-100',
+      'from-pink-100 to-pink-200 dark:from-pink-900/30 dark:to-pink-800/30',
+      'from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30',
+      'from-pink-100 to-green-100 dark:from-pink-900/30 dark:to-green-900/30',
+      'from-emerald-100 to-pink-100 dark:from-emerald-900/30 dark:to-pink-900/30',
     ]
     return colors[index % colors.length]
   }
@@ -112,14 +112,14 @@ export default function Gratitude() {
           {gratitudes.map((item, index) => (
             <div
               key={item.id}
-              className={`card bg-gradient-to-br ${getRandomColor(index)} border-2 border-opacity-50 hover:shadow-lg transition-all hover:-translate-y-1`}
+              className={`card bg-gradient-to-br ${getRandomColor(index)} border-2 border-opacity-50 dark:border-opacity-30 hover:shadow-lg transition-all hover:-translate-y-1`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Heart 
                     className={`w-5 h-5 ${item.from === currentUser.email ? 'text-green-500 fill-green-500' : 'text-pink-500 fill-pink-500'}`}
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {item.from === currentUser.email ? 'You' : 'Partner'}
                   </span>
                 </div>
@@ -135,7 +135,7 @@ export default function Gratitude() {
                 {item.message}
               </p>
               
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
                 {new Date(item.createdAt).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
