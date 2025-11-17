@@ -1,6 +1,6 @@
-# LDR - Long Distance Relationship Companion App 💕
+# LDR - Long Distance Relationship Companion App 
 
-A beautiful, mobile-responsive web app for long-distance couples to save, plan, and organize everything they want to experience together.
+A mobile-responsive web app for long-distance couples to save, plan, and organize everything they want to experience together.
 
 ## Features ✨
 
