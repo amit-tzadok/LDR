@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Heart, Plus, Trash2, Sparkles } from 'lucide-react'
-import { getGratitudes, addGratitude, deleteGratitude } from '../services/firebase'
+import { getGratitudes, addGratitude, deleteGratitude, getAllUserProfiles } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { useCouple } from '../contexts/CoupleContext'
 
@@ -8,6 +8,7 @@ export default function Gratitude() {
   const [gratitudes, setGratitudes] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [newGratitude, setNewGratitude] = useState('')
+  const [userProfiles, setUserProfiles] = useState({})
   const { currentUser } = useAuth()
   const { coupleCode } = useCouple()
 
@@ -18,6 +19,21 @@ export default function Gratitude() {
     })
     return unsubscribe
   }, [coupleCode])
+
+  useEffect(() => {
+    if (!coupleCode) return
+    const unsubscribe = getAllUserProfiles(coupleCode, (profiles) => {
+      setUserProfiles(profiles)
+    })
+    return unsubscribe
+  }, [coupleCode])
+
+  const getPartnerName = () => {
+    const partnerProfile = Object.values(userProfiles).find(
+      profile => profile.email !== currentUser.email
+    )
+    return partnerProfile?.name || 'Partner'
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -40,10 +56,10 @@ export default function Gratitude() {
 
   const getRandomColor = (index) => {
     const colors = [
-      'from-pink-100 to-pink-200 dark:from-pink-900/30 dark:to-pink-800/30',
-      'from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30',
-      'from-pink-100 to-green-100 dark:from-pink-900/30 dark:to-green-900/30',
-      'from-emerald-100 to-pink-100 dark:from-emerald-900/30 dark:to-pink-900/30',
+      'from-pink-200/20 to-pink-300/20 dark:from-pink-900/40 dark:to-pink-800/40 border-pink-300 dark:border-pink-700',
+      'from-green-200/20 to-green-300/20 dark:from-green-900/40 dark:to-green-800/40 border-green-300 dark:border-green-700',
+      'from-pink-200/20 to-green-200/20 dark:from-pink-900/40 dark:to-green-900/40 border-pink-300 dark:border-green-700',
+      'from-emerald-200/20 to-pink-200/20 dark:from-emerald-900/40 dark:to-pink-900/40 border-emerald-300 dark:border-pink-700',
     ]
     return colors[index % colors.length]
   }
@@ -109,43 +125,48 @@ export default function Gratitude() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {gratitudes.map((item, index) => (
-            <div
-              key={item.id}
-              className={`card bg-gradient-to-br ${getRandomColor(index)} border-2 border-opacity-50 dark:border-opacity-30 hover:shadow-lg transition-all hover:-translate-y-1`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Heart 
-                    className={`w-5 h-5 ${item.from === currentUser.email ? 'text-green-500 fill-green-500' : 'text-pink-500 fill-pink-500'}`}
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {item.from === currentUser.email ? 'You' : 'Partner'}
-                  </span>
+          {gratitudes.map((item, index) => {
+            const colorClass = getRandomColor(index)
+            const borderClass = colorClass.split(' ').find(c => c.includes('border-'))
+            
+            return (
+              <div
+                key={item.id}
+                className={`card bg-gradient-to-br ${colorClass} border-2 hover:shadow-lg transition-all hover:-translate-y-1`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Heart 
+                      className={`w-5 h-5 ${item.from === currentUser.email ? 'text-green-500 fill-green-500' : 'text-pink-500 fill-pink-500'}`}
+                    />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {item.from === currentUser.email ? 'You' : getPartnerName()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                
+                <p className="text-gray-800 dark:text-gray-100 mb-3 leading-relaxed">
+                  {item.message}
+                </p>
+                
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {new Date(item.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                  })}
+                </div>
               </div>
-              
-              <p className="text-gray-800 dark:text-gray-100 mb-3 leading-relaxed">
-                {item.message}
-              </p>
-              
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {new Date(item.createdAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit'
-                })}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
