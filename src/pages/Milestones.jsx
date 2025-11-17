@@ -260,7 +260,7 @@ export default function Milestones() {
       ) : (
         <div className="space-y-4">
           {milestones.map((milestone) => (
-            <div key={milestone.id} className="card hover:shadow-lg dark:hover:shadow-pink-500/10 transition-shadow">
+            <div key={milestone.id} className="card bg-white dark:bg-gray-800 hover:shadow-lg dark:hover:shadow-pink-500/10 transition-shadow">
                 <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${getCategoryColor(milestone.category)} flex items-center justify-center text-white flex-shrink-0 relative`}>
                   {getCategoryIcon(milestone.category)}
@@ -283,7 +283,7 @@ export default function Milestones() {
                           day: 'numeric'
                         })}
                         <span className="text-gray-400 dark:text-gray-500">•</span>
-                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-xs font-medium">
                           {milestone.category}
                         </span>
                       </div>
