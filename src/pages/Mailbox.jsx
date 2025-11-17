@@ -14,9 +14,13 @@ export default function Mailbox() {
 
   const frogStickers = ['🐸', '🐊', '🦎', '🦖', '🪷', '💚', '🌿', '☘️']
 
+  console.log('Mailbox - coupleCode:', coupleCode)
+
   useEffect(() => {
+    console.log('Mailbox useEffect - coupleCode:', coupleCode)
     if (!coupleCode) return
     const unsubscribe = getLetters(coupleCode, (data) => {
+      console.log('Received letters:', data)
       setLetters(data.sort((a, b) => b.createdAt - a.createdAt))
     })
     return unsubscribe
@@ -70,17 +74,26 @@ export default function Mailbox() {
 
   return (
     <div className="space-y-6">
+      {!coupleCode && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+          <p className="text-yellow-800 dark:text-yellow-200 font-semibold">
+            ⚠️ Couple code not loaded. Please refresh the page or check the Invite page for your couple code.
+          </p>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
             <Mail className="w-8 h-8 text-pink-500" />
             Mailbox
           </h1>
-          <p className="text-gray-600 mt-1">Love letters for each other</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Love letters for each other</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="btn-primary flex items-center gap-2"
+          disabled={!coupleCode}
         >
           <Send className="w-5 h-5" />
           Write Letter
