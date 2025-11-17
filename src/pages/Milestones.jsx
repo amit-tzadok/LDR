@@ -159,7 +159,7 @@ export default function Milestones() {
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Title
               </label>
               <input
@@ -172,7 +172,7 @@ export default function Milestones() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Description (optional)
               </label>
               <textarea
@@ -184,7 +184,7 @@ export default function Milestones() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date
                 </label>
                 <input
@@ -196,7 +196,7 @@ export default function Milestones() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Category
                 </label>
                 <select
@@ -253,14 +253,14 @@ export default function Milestones() {
 
       {milestones.length === 0 ? (
         <div className="card text-center py-12">
-          <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">No milestones yet</p>
-          <p className="text-gray-400 mt-2">Start tracking your special moments!</p>
+          <Award className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400 text-lg">No milestones yet</p>
+          <p className="text-gray-400 dark:text-gray-500 mt-2">Start tracking your special moments!</p>
         </div>
       ) : (
         <div className="space-y-4">
           {milestones.map((milestone) => (
-            <div key={milestone.id} className="card hover:shadow-lg transition-shadow">
+            <div key={milestone.id} className="card hover:shadow-lg dark:hover:shadow-pink-500/10 transition-shadow">
                 <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${getCategoryColor(milestone.category)} flex items-center justify-center text-white flex-shrink-0 relative`}>
                   {getCategoryIcon(milestone.category)}
@@ -274,7 +274,7 @@ export default function Milestones() {
                       <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                         {milestone.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
                         <Calendar className="w-4 h-4" />
                         {new Date(milestone.date).toLocaleDateString('en-US', {
                           weekday: 'long',
@@ -282,8 +282,8 @@ export default function Milestones() {
                           month: 'long',
                           day: 'numeric'
                         })}
-                        <span className="text-gray-400">•</span>
-                        <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                        <span className="text-gray-400 dark:text-gray-500">•</span>
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
                           {milestone.category}
                         </span>
                       </div>
@@ -291,13 +291,13 @@ export default function Milestones() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(milestone)}
-                        className="text-gray-400 hover:text-blue-500 transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                       >
                         <Edit2 className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => handleDelete(milestone.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
