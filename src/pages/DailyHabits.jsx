@@ -13,17 +13,23 @@ export default function DailyHabits() {
   const [userProfiles, setUserProfiles] = useState({})
   const { currentUser } = useAuth()
 
+  console.log('DailyHabits - coupleCode:', coupleCode, 'currentUser:', currentUser?.email)
+
   useEffect(() => {
+    console.log('DailyHabits habits useEffect - coupleCode:', coupleCode)
     if (!coupleCode) return
     const unsubscribe = getDailyHabits(coupleCode, (data) => {
+      console.log('Received daily habits:', data)
       setHabits(data)
     })
     return unsubscribe
   }, [coupleCode])
 
   useEffect(() => {
+    console.log('DailyHabits profiles useEffect - coupleCode:', coupleCode)
     if (!coupleCode) return
     const unsubscribe = getAllUserProfiles(coupleCode, (profiles) => {
+      console.log('Received user profiles:', profiles)
       setUserProfiles(profiles)
     })
     return unsubscribe
@@ -107,18 +113,26 @@ export default function DailyHabits() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (newHabit.trim()) {
-      await addDailyHabit(coupleCode, {
-        habit: newHabit,
-        createdBy: currentUser.email,
-        completions: {},
-        createdAt: Date.now()
-      })
-      setNewHabit('')
-      setShowForm(false)
+      console.log('Adding habit with coupleCode:', coupleCode, 'habit:', newHabit)
+      try {
+        await addDailyHabit(coupleCode, {
+          habit: newHabit,
+          createdBy: currentUser.email,
+          completions: {},
+          createdAt: Date.now()
+        })
+        console.log('Habit added successfully')
+        setNewHabit('')
+        setShowForm(false)
+      } catch (error) {
+        console.error('Error adding habit:', error)
+        alert('Failed to add habit: ' + error.message)
+      }
     }
   }
 
   const handleToggle = async (habit) => {
+    console.log('Toggling habit:', habit.id)
     const today = getTodayDate()
     const completions = habit.completions || {}
     const todayCompletions = completions[today] || {}
@@ -141,7 +155,14 @@ export default function DailyHabits() {
       [today]: updatedTodayCompletions
     }
     
-    await updateDailyHabit(habit.id, { completions: updatedCompletions })
+    console.log('Updating habit with completions:', updatedCompletions)
+    try {
+      await updateDailyHabit(habit.id, { completions: updatedCompletions })
+      console.log('Habit updated successfully')
+    } catch (error) {
+      console.error('Error updating habit:', error)
+      alert('Failed to update habit: ' + error.message)
+    }
   }
 
   const handleDelete = async (id) => {
