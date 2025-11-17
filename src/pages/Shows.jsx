@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, X, Tv } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Tv, Film } from 'lucide-react'
 import { subscribeShows, addShow, updateShow, deleteShow } from '../services/firebase'
 import { useCouple } from '../contexts/CoupleContext'
 
 const statuses = ['Not Started', 'Watching', 'Finished']
+const types = ['Show', 'Movie']
 const platforms = ['Netflix', 'Hulu', 'Prime Video', 'Disney+', 'HBO Max', 'Apple TV+', 'Other']
 
 export default function Shows() {
@@ -11,10 +12,12 @@ export default function Shows() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [filterStatus, setFilterStatus] = useState('all')
+  const [filterType, setFilterType] = useState('all')
   const { coupleCode } = useCouple()
 
   const [formData, setFormData] = useState({
     title: '',
+    type: 'Show',
     platform: 'Netflix',
     status: 'Not Started',
     notes: '',
@@ -43,6 +46,7 @@ export default function Shows() {
   const handleEdit = (show) => {
     setFormData({
       title: show.title,
+      type: show.type || 'Show',
       platform: show.platform,
       status: show.status,
       notes: show.notes || '',
@@ -58,8 +62,9 @@ export default function Shows() {
   }
 
   const filteredShows = shows.filter(show => {
-    if (filterStatus === 'all') return true
-    return show.status === filterStatus
+    if (filterStatus !== 'all' && show.status !== filterStatus) return false
+    if (filterType !== 'all' && (show.type || 'Show') !== filterType) return false
+    return true
   })
 
   const getStatusColor = (status) => {
@@ -83,7 +88,7 @@ export default function Shows() {
           onClick={() => {
             setShowForm(!showForm)
             setEditingId(null)
-            setFormData({ title: '', platform: 'Netflix', status: 'Not Started', notes: '' })
+            setFormData({ title: '', type: 'Show', platform: 'Netflix', status: 'Not Started', notes: '' })
           }}
           className="btn-primary inline-flex items-center gap-2"
         >
@@ -93,30 +98,57 @@ export default function Shows() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setFilterStatus('all')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-            filterStatus === 'all'
-              ? 'bg-pink-500 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          All ({shows.length})
-        </button>
-        {statuses.map(status => (
+      <div className="space-y-3">
+        <div className="flex gap-2 flex-wrap">
           <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
+            onClick={() => setFilterType('all')}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              filterStatus === status
+              filterType === 'all'
                 ? 'bg-pink-500 text-white'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            {status} ({shows.filter(s => s.status === status).length})
+            All Types
           </button>
-        ))}
+          {types.map(type => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                filterType === type
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {type}s
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setFilterStatus('all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              filterStatus === 'all'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            All Status ({shows.length})
+          </button>
+          {statuses.map(status => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                filterStatus === status
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {status} ({shows.filter(s => s.status === status).length})
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Form */}
@@ -136,6 +168,20 @@ export default function Shows() {
               required
               placeholder="Show or movie title"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type *</label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              className="input"
+              required
+            >
+              {types.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -194,7 +240,7 @@ export default function Shows() {
           filteredShows.map(show => (
             <div key={show.id} className="card hover:shadow-2xl transition-shadow">
               <div className="flex justify-between items-start mb-3">
-                <Tv className="w-8 h-8 text-green-400" />
+                {(show.type || 'Show') === 'Movie' ? <Film className="w-8 h-8 text-purple-400" /> : <Tv className="w-8 h-8 text-green-400" />}
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(show)}
@@ -213,7 +259,17 @@ export default function Shows() {
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{show.title}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-2">
+                {show.title}
+                <span className={`text-xs font-bold px-2 py-1 rounded ${
+                  (show.type || 'Show') === 'Movie'
+                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                }`}>
+                  {(show.type || 'Show') === 'Movie' ? <Film className="w-3 h-3 inline mr-1" /> : <Tv className="w-3 h-3 inline mr-1" />}
+                  {show.type || 'Show'}
+                </span>
+              </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{show.platform}</p>
               
               <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(show.status)}`}>

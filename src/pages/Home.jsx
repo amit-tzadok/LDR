@@ -88,13 +88,6 @@ export default function Home() {
       description: 'Things we want to do together'
     },
     { 
-      title: 'By Location', 
-      icon: MapPin, 
-      path: '/date-ideas-by-location',
-      gradient: 'from-green-300 to-emerald-400',
-      description: 'Ideas sorted by place'
-    },
-    { 
       title: 'Books', 
       icon: BookOpen, 
       path: '/books',
@@ -280,7 +273,7 @@ export default function Home() {
             Planning Together
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Date Ideas', 'By Location', 'Future Trips', 'Dream Trips'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Date Ideas', 'Future Trips', 'Dream Trips'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}
@@ -303,7 +296,7 @@ export default function Home() {
             Shared Interests
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Books', 'Shows'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Books', 'Shows & Movies'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}

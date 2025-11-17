@@ -13,13 +13,6 @@ export default function More() {
       description: 'Update your name and settings'
     },
     { 
-      title: 'By Location', 
-      icon: MapPin, 
-      path: '/date-ideas-by-location',
-      gradient: 'from-green-300 to-emerald-400',
-      description: 'Date ideas sorted by place'
-    },
-    { 
       title: 'Books', 
       icon: BookOpen, 
       path: '/books',
