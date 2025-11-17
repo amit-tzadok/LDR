@@ -137,13 +137,6 @@ export default function Home() {
       description: 'Our calendar of special moments'
     },
     { 
-      title: 'Mailbox', 
-      icon: Mail, 
-      path: '/mailbox',
-      gradient: 'from-pink-400 to-green-400',
-      description: 'Love letters for each other'
-    },
-    { 
       title: 'Gratitude Wall', 
       icon: Sparkles, 
       path: '/gratitude',
@@ -264,7 +257,7 @@ export default function Home() {
             Daily Connection
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Daily Habits', 'Gratitude Wall', 'Mailbox'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Daily Habits', 'Gratitude Wall'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}

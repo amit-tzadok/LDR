@@ -11,7 +11,6 @@ import FutureTrips from './pages/FutureTrips'
 import DreamTrips from './pages/DreamTrips'
 import Invite from './pages/Invite'
 import SpecialDates from './pages/SpecialDates'
-import Mailbox from './pages/Mailbox'
 import Gratitude from './pages/Gratitude'
 import Milestones from './pages/Milestones'
 import DailyHabits from './pages/DailyHabits'
@@ -70,7 +69,6 @@ function App() {
           <Route path="dream-trips" element={<AnimatedPage><DreamTrips /></AnimatedPage>} />
           <Route path="invite" element={<AnimatedPage><Invite /></AnimatedPage>} />
           <Route path="special-dates" element={<AnimatedPage><SpecialDates /></AnimatedPage>} />
-          <Route path="mailbox" element={<AnimatedPage><Mailbox /></AnimatedPage>} />
           <Route path="gratitude" element={<AnimatedPage><Gratitude /></AnimatedPage>} />
           <Route path="milestones" element={<AnimatedPage><Milestones /></AnimatedPage>} />
           <Route path="daily-habits" element={<AnimatedPage><DailyHabits /></AnimatedPage>} />

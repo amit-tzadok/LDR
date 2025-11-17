@@ -36,8 +36,8 @@ export default function Layout() {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/daily-habits', icon: CheckCircle2, label: 'Daily' },
-    { path: '/date-ideas', icon: Heart, label: 'Planning' },
-    { path: '/mailbox', icon: Mail, label: 'Letters' },
+    { path: '/milestones', icon: Award, label: 'Journey' },
+    { path: '/gratitude', icon: Heart, label: 'Gratitude' },
     { path: '/more', icon: MoreHorizontal, label: 'More' },
   ]
 
@@ -83,22 +83,13 @@ export default function Layout() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-pink-100 dark:border-gray-700 shadow-lg transition-colors">
-        <div className="flex justify-around items-center py-2">
-          {navItems.map(({ path, icon: Icon, label }) => (
-            <button
-              key={path}
-              onClick={() => navigate(path)}
-              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-                location.pathname === path
-                  ? 'text-pink-500 dark:text-pink-400'
-                  : 'text-gray-400 hover:text-pink-400 dark:text-gray-500 dark:hover:text-pink-400'
-              }`}
-            >
-              <Icon className="w-6 h-6" />
-              <span className="text-xs mt-1">{label}</span>
-            </button>
-          ))}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
+        <div className="flex justify-around items-center h-16">
+          <NavButton to="/" icon={Home} label="Home" />
+          <NavButton to="/daily-habits" icon={CheckCircle2} label="Daily" />
+          <NavButton to="/milestones" icon={Award} label="Journey" />
+          <NavButton to="/gratitude" icon={Heart} label="Gratitude" />
+          <NavButton to="/more" icon={MoreHorizontal} label="More" />
         </div>
       </nav>
     </div>
