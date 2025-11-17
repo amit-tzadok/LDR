@@ -17,7 +17,9 @@ export function CoupleProvider({ children }) {
     const loadCoupleCode = async () => {
       if (currentUser) {
         try {
+          console.log('Loading couple code for user:', currentUser.uid)
           const code = await getUserCoupleCode(currentUser.uid)
+          console.log('Couple code loaded:', code)
           setCoupleCode(code)
         } catch (error) {
           console.error('Error loading couple code:', error)

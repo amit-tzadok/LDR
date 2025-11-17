@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
-import { User, Save, Bell, BellOff } from 'lucide-react'
+import { User, Save, Bell, BellOff, Trash2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { subscribeUserProfile, updateUserProfile, getAllUserProfiles } from '../services/firebase'
 import { requestNotificationPermission } from '../utils/notifications'
 import { useCouple } from '../contexts/CoupleContext'
+import { deleteUser } from 'firebase/auth'
+import { doc, deleteDoc } from 'firebase/firestore'
+import { db } from '../firebase'
+import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
-  const { currentUser } = useAuth()
+  const { currentUser, logout } = useAuth()
   const { coupleCode } = useCouple()
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,6 +18,9 @@ export default function Profile() {
   const [userProfiles, setUserProfiles] = useState({})
   const [notificationStatus, setNotificationStatus] = useState('default')
   const [notificationLoading, setNotificationLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!currentUser) return
@@ -76,6 +83,30 @@ export default function Profile() {
       alert('Error enabling notifications. Please try again.')
     } finally {
       setNotificationLoading(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true)
+    try {
+      // Delete user profile from Firestore
+      await deleteDoc(doc(db, 'userProfiles', currentUser.uid))
+      
+      // Delete Firebase Auth account
+      await deleteUser(currentUser)
+      
+      // Navigate to login
+      navigate('/login')
+    } catch (error) {
+      console.error('Error deleting account:', error)
+      if (error.code === 'auth/requires-recent-login') {
+        alert('For security, please log out and log back in before deleting your account.')
+      } else {
+        alert('Failed to delete account. Please try again.')
+      }
+    } finally {
+      setDeleteLoading(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -220,6 +251,51 @@ export default function Profile() {
           Your name will be visible to your partner throughout the app, including in Daily Habits, 
           Letters, and other shared features.
         </p>
+      </div>
+
+      {/* Delete Account */}
+      <div className="card border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/10">
+        <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
+          <Trash2 className="w-5 h-5" />
+          Delete Account
+        </h2>
+        <div className="space-y-4">
+          <p className="text-gray-700 dark:text-gray-300">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+          
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete My Account
+            </button>
+          ) : (
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-red-300 dark:border-red-700">
+              <p className="text-red-600 dark:text-red-400 font-semibold mb-3">
+                ⚠️ Are you sure? This will permanently delete your account and all data.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex-1"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Yes, Delete Forever'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleteLoading}
+                  className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
