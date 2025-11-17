@@ -52,18 +52,30 @@ export default function Home() {
   }, [nextMeetDate])
 
   const handleUpdateDate = async () => {
-    if (newDate && coupleCode) {
-      try {
-        await updateNextMeetDate(coupleCode, newDate)
-        setShowDatePicker(false)
-        setNewDate('')
-        setSaveMessage('Date saved successfully!')
-        setTimeout(() => setSaveMessage(''), 3000)
-      } catch (error) {
-        console.error('Error updating date:', error)
-        setSaveMessage('Failed to save date.')
-        setTimeout(() => setSaveMessage(''), 5000)
-      }
+    if (!coupleCode) {
+      console.error('No couple code available')
+      setSaveMessage('Error: No couple code found. Please refresh the page.')
+      setTimeout(() => setSaveMessage(''), 5000)
+      return
+    }
+    
+    if (!newDate) {
+      setSaveMessage('Please select a date.')
+      setTimeout(() => setSaveMessage(''), 3000)
+      return
+    }
+    
+    try {
+      console.log('Updating date with coupleCode:', coupleCode, 'newDate:', newDate)
+      await updateNextMeetDate(coupleCode, newDate)
+      setShowDatePicker(false)
+      setNewDate('')
+      setSaveMessage('Date saved successfully!')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } catch (error) {
+      console.error('Error updating date:', error)
+      setSaveMessage('Failed to save date: ' + error.message)
+      setTimeout(() => setSaveMessage(''), 5000)
     }
   }
 
