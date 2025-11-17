@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { Heart, Users } from 'lucide-react'
 import { createCouple, joinCouple } from '../services/coupleService'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -14,6 +15,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
+  const { refreshCoupleCode } = useCouple()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -44,6 +46,9 @@ export default function Login() {
           // Create new couple
           await createCouple(userId, name.trim(), email)
         }
+        
+        // Refresh couple code after creation/joining
+        await refreshCoupleCode()
       } else {
         await signIn(email, password)
       }

@@ -13,6 +13,19 @@ export function CoupleProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const { currentUser } = useAuth()
 
+  const refreshCoupleCode = async () => {
+    if (currentUser) {
+      try {
+        console.log('Refreshing couple code for user:', currentUser.uid)
+        const code = await getUserCoupleCode(currentUser.uid)
+        console.log('Couple code refreshed:', code)
+        setCoupleCode(code)
+      } catch (error) {
+        console.error('Error refreshing couple code:', error)
+      }
+    }
+  }
+
   useEffect(() => {
     const loadCoupleCode = async () => {
       if (currentUser) {
@@ -36,6 +49,7 @@ export function CoupleProvider({ children }) {
   const value = {
     coupleCode,
     setCoupleCode,
+    refreshCoupleCode,
     loading
   }
 

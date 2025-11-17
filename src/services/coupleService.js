@@ -18,7 +18,9 @@ export const generateCoupleCode = () => {
 
 // Create a new couple when first user signs up
 export const createCouple = async (userId, userName, userEmail) => {
+  console.log('Creating couple for user:', userId, userName, userEmail)
   const coupleCode = generateCoupleCode()
+  console.log('Generated couple code:', coupleCode)
   const coupleRef = doc(db, 'couples', coupleCode)
   
   await setDoc(coupleRef, {
@@ -34,6 +36,7 @@ export const createCouple = async (userId, userName, userEmail) => {
       }
     }
   })
+  console.log('Couple document created')
   
   // Update user profile with couple code
   const userRef = doc(db, 'userProfiles', userId)
@@ -43,6 +46,7 @@ export const createCouple = async (userId, userName, userEmail) => {
     email: userEmail,
     createdAt: serverTimestamp()
   }, { merge: true })
+  console.log('User profile updated with couple code')
   
   return coupleCode
 }
