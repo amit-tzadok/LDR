@@ -77,7 +77,7 @@ export default function DateIdeas() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Date Ideas</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Date Ideas</h1>
         <button
           onClick={() => {
             setShowForm(!showForm)
@@ -119,7 +119,7 @@ export default function DateIdeas() {
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
           <input
             type="checkbox"
             checked={showCompleted}
@@ -133,12 +133,12 @@ export default function DateIdeas() {
       {/* Form */}
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-4">
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
             {editingId ? 'Edit Idea' : 'New Date Idea'}
           </h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title *</label>
             <input
               type="text"
               value={formData.title}
@@ -150,7 +150,7 @@ export default function DateIdeas() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -161,7 +161,7 @@ export default function DateIdeas() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category *</label>
             <select
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -175,7 +175,7 @@ export default function DateIdeas() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location</label>
             <input
               type="text"
               value={formData.location}
@@ -195,31 +195,31 @@ export default function DateIdeas() {
       <div className="space-y-4">
         {filteredIdeas.length === 0 ? (
           <div className="card text-center py-12">
-            <p className="text-gray-500">No date ideas yet. Add your first one!</p>
+            <p className="text-gray-500 dark:text-gray-400">No date ideas yet. Add your first one!</p>
           </div>
         ) : (
           filteredIdeas.map(idea => (
             <div
               key={idea.id}
-              className={`card ${idea.completed ? 'bg-gray-50 opacity-75' : ''}`}
+              className={`card ${idea.completed ? 'bg-gray-50 dark:bg-gray-800 opacity-75' : 'bg-white dark:bg-gray-800'}`}
             >
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className={`text-lg font-semibold ${idea.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                    <h3 className={`text-lg font-semibold ${idea.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-100'}`}>
                       {idea.title}
                     </h3>
-                    <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-medium">
+                    <span className="px-3 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-xs font-medium">
                       {idea.category}
                     </span>
                   </div>
                   {idea.description && (
-                    <p className="text-gray-600 text-sm mb-2">{idea.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{idea.description}</p>
                   )}
                   {idea.location && (
-                    <p className="text-gray-500 text-sm">📍 {idea.location}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">📍 {idea.location}</p>
                   )}
-                  <p className="text-xs text-gray-400 mt-2">Added by {idea.addedBy}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Added by {idea.addedBy}</p>
                 </div>
                 <div className="flex gap-2">
                   <button

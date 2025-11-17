@@ -104,12 +104,12 @@ export default function DateIdeasByLocation() {
       {/* Form */}
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-4">
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
             {editingId ? 'Edit Idea' : 'New Date Idea'}
           </h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title *</label>
             <input
               type="text"
               value={formData.title}
@@ -121,7 +121,7 @@ export default function DateIdeasByLocation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -132,7 +132,7 @@ export default function DateIdeasByLocation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category *</label>
             <select
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -146,7 +146,7 @@ export default function DateIdeasByLocation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location *</label>
             <input
               type="text"
               value={formData.location}
@@ -165,7 +165,7 @@ export default function DateIdeasByLocation() {
       {/* Location Groups */}
       {locations.length === 0 ? (
         <div className="card text-center py-12">
-          <p className="text-gray-500">No date ideas yet. Add your first one!</p>
+          <p className="text-gray-500 dark:text-gray-400">No date ideas yet. Add your first one!</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -173,11 +173,11 @@ export default function DateIdeasByLocation() {
             <div key={location} className="space-y-3">
               <button
                 onClick={() => setSelectedLocation(selectedLocation === location ? null : location)}
-                className="flex items-center gap-2 text-2xl font-bold text-gray-800 hover:text-pink-600 transition-colors"
+                className="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100 hover:text-pink-600 dark:hover:text-pink-400 transition-colors"
               >
                 <MapPin className="w-6 h-6" />
                 {location}
-                <span className="text-sm font-normal text-gray-500">
+                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
                   ({ideasByLocation[location].length})
                 </span>
               </button>
@@ -187,30 +187,30 @@ export default function DateIdeasByLocation() {
                   {ideasByLocation[location].map(idea => (
                     <div
                       key={idea.id}
-                      className={`card ${idea.completed ? 'bg-gray-50 opacity-75' : ''}`}
+                      className={`card ${idea.completed ? 'bg-gray-50 dark:bg-gray-800 opacity-75' : 'bg-white dark:bg-gray-800'}`}
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className={`text-lg font-semibold ${idea.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                            <h3 className={`text-lg font-semibold ${idea.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-100'}`}>
                               {idea.title}
                             </h3>
-                            <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-medium">
+                            <span className="px-3 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-xs font-medium">
                               {idea.category}
                             </span>
                           </div>
                           {idea.description && (
-                            <p className="text-gray-600 text-sm mb-2">{idea.description}</p>
+                            <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{idea.description}</p>
                           )}
-                          <p className="text-xs text-gray-400 mt-2">Added by {idea.addedBy}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Added by {idea.addedBy}</p>
                         </div>
                         <div className="flex flex-col gap-2">
                           <button
                             onClick={() => handleToggleComplete(idea)}
                             className={`p-2 rounded-full transition-colors ${
                               idea.completed
-                                ? 'bg-green-100 text-green-600'
-                                : 'bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400'
                             }`}
                             title={idea.completed ? 'Mark incomplete' : 'Mark complete'}
                           >
@@ -218,14 +218,14 @@ export default function DateIdeasByLocation() {
                           </button>
                           <button
                             onClick={() => handleEdit(idea)}
-                            className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(idea.id)}
-                            className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
