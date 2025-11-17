@@ -78,7 +78,7 @@ export default function Shows() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Shows to Watch Together 📺</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Shows & Movies 🎬</h1>
         <button
           onClick={() => {
             setShowForm(!showForm)
@@ -88,7 +88,7 @@ export default function Shows() {
           className="btn-primary inline-flex items-center gap-2"
         >
           {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          {showForm ? 'Cancel' : 'Add Show'}
+          {showForm ? 'Cancel' : 'Add Title'}
         </button>
       </div>
 
@@ -122,24 +122,24 @@ export default function Shows() {
       {/* Form */}
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-4">
-          <h3 className="text-xl font-semibold text-gray-800">
-            {editingId ? 'Edit Show' : 'Add New Show'}
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+            {editingId ? 'Edit' : 'Add New Title'}
           </h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title *</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="input"
               required
-              placeholder="Show title"
+              placeholder="Show or movie title"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Platform *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platform *</label>
             <select
               value={formData.platform}
               onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
@@ -153,7 +153,7 @@ export default function Shows() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status *</label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -167,18 +167,18 @@ export default function Shows() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="input"
               rows={3}
-              placeholder="Your thoughts about this show..."
+              placeholder="Your thoughts..."
             />
           </div>
 
           <button type="submit" className="btn-primary w-full">
-            {editingId ? 'Update Show' : 'Add Show'}
+            {editingId ? 'Update' : 'Add'}
           </button>
         </form>
       )}
@@ -188,7 +188,7 @@ export default function Shows() {
         {filteredShows.length === 0 ? (
           <div className="col-span-full card text-center py-12">
             <Tv className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No shows yet. Add your first show to watch together! 🍿</p>
+            <p className="text-gray-500 dark:text-gray-400">No shows or movies yet. Add your first one! 🍿</p>
           </div>
         ) : (
           filteredShows.map(show => (
@@ -213,15 +213,15 @@ export default function Shows() {
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">{show.title}</h3>
-              <p className="text-gray-600 text-sm mb-3">{show.platform}</p>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{show.title}</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{show.platform}</p>
               
               <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(show.status)}`}>
                 {show.status}
               </span>
 
               {show.notes && (
-                <p className="text-gray-600 text-sm mt-3 pt-3 border-t border-gray-100">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">
                   {show.notes}
                 </p>
               )}

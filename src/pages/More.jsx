@@ -27,11 +27,11 @@ export default function More() {
       description: 'Books to read together'
     },
     { 
-      title: 'Shows', 
+      title: 'Shows & Movies', 
       icon: Tv, 
       path: '/shows',
       gradient: 'from-green-300 to-green-400',
-      description: 'Shows to watch together'
+      description: 'Shows and movies to watch together'
     },
     { 
       title: 'Gratitude Wall', 
