@@ -154,7 +154,7 @@ export default function Milestones() {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="card bg-gradient-to-br from-pink-50 to-green-50 dark:from-gray-800 dark:to-gray-700">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             {editingId ? 'Edit Milestone' : 'New Milestone'}
           </h3>
           <div className="space-y-4">
@@ -291,20 +291,20 @@ export default function Milestones() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(milestone)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                        className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
                         <Edit2 className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => handleDelete(milestone.id)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        className="text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
                   {milestone.description && (
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {milestone.description}
                     </p>
                   )}

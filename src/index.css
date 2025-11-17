@@ -74,4 +74,15 @@
   .dark .border-gray-300 {
     @apply border-gray-600;
   }
+
+  /* Ensure cards are opaque in dark mode — override any inline/light gradients */
+  .dark .card {
+    background-image: none !important;
+    background-color: theme('colors.gray.800') !important;
+  }
+
+  /* Ensure strong readable text inside cards in dark mode unless explicitly colored */
+  .dark .card :where(h1, h2, h3, h4, h5, h6, p, span, label) {
+    color: theme('colors.gray.100') !important;
+  }
 }
