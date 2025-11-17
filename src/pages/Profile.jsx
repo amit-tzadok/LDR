@@ -3,9 +3,11 @@ import { User, Save, Bell, BellOff } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { subscribeUserProfile, updateUserProfile, getAllUserProfiles } from '../services/firebase'
 import { requestNotificationPermission } from '../utils/notifications'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Profile() {
   const { currentUser } = useAuth()
+  const { coupleCode } = useCouple()
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -26,11 +28,12 @@ export default function Profile() {
   }, [currentUser])
 
   useEffect(() => {
-    const unsubscribe = getAllUserProfiles((profiles) => {
+    if (!coupleCode) return
+    const unsubscribe = getAllUserProfiles(coupleCode, (profiles) => {
       setUserProfiles(profiles)
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   useEffect(() => {
     if ('Notification' in window) {

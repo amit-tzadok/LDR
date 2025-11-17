@@ -2,24 +2,27 @@ import { useState, useEffect } from 'react'
 import { Heart, Plus, Trash2, Sparkles } from 'lucide-react'
 import { getGratitudes, addGratitude, deleteGratitude } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Gratitude() {
   const [gratitudes, setGratitudes] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [newGratitude, setNewGratitude] = useState('')
   const { currentUser } = useAuth()
+  const { coupleCode } = useCouple()
 
   useEffect(() => {
-    const unsubscribe = getGratitudes((data) => {
+    if (!coupleCode) return
+    const unsubscribe = getGratitudes(coupleCode, (data) => {
       setGratitudes(data.sort((a, b) => b.createdAt - a.createdAt))
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (newGratitude.trim()) {
-      await addGratitude({
+      await addGratitude(coupleCode, {
         message: newGratitude,
         from: currentUser.email,
         createdAt: Date.now()

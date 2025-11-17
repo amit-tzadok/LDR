@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Heart, MapPin, BookOpen, Tv, Plane, Sparkles, Calendar, UserPlus, Mail, Award, CheckCircle2 } from 'lucide-react'
 import { getSettings, updateNextMeetDate } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Home() {
   const [nextMeetDate, setNextMeetDate] = useState('')
@@ -10,13 +11,15 @@ export default function Home() {
   const [newDate, setNewDate] = useState('')
   const [saveMessage, setSaveMessage] = useState('')
   const navigate = useNavigate()
+  const { coupleCode } = useCouple()
 
   useEffect(() => {
-    const unsubscribe = getSettings((settings) => {
+    if (!coupleCode) return
+    const unsubscribe = getSettings(coupleCode, (settings) => {
       setNextMeetDate(settings.nextMeetDate || '')
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   useEffect(() => {
     if (!nextMeetDate) return
@@ -49,17 +52,16 @@ export default function Home() {
   }, [nextMeetDate])
 
   const handleUpdateDate = async () => {
-    if (newDate) {
+    if (newDate && coupleCode) {
       try {
-        console.log('Attempting to save date:', newDate)
-        await updateNextMeetDate(newDate)
+        await updateNextMeetDate(coupleCode, newDate)
         setShowDatePicker(false)
         setNewDate('')
         setSaveMessage('Date saved successfully!')
         setTimeout(() => setSaveMessage(''), 3000)
       } catch (error) {
         console.error('Error updating date:', error)
-        setSaveMessage('Failed to save date. Check console for details.')
+        setSaveMessage('Failed to save date.')
         setTimeout(() => setSaveMessage(''), 5000)
       }
     }

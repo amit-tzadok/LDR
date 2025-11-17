@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { MapPin, Plus, Edit2, Trash2, Check, X } from 'lucide-react'
 import { subscribeDateIdeas, addDateIdea, updateDateIdea, deleteDateIdea } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
+import { useCouple } from '../contexts/CoupleContext'
 
 const categories = ['Romantic', 'Movie Night', 'Games', 'Cute', 'Adventure', 'Food', 'Other']
 
 export default function DateIdeasByLocation() {
+  const { coupleCode } = useCouple()
   const [ideas, setIdeas] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -20,9 +22,10 @@ export default function DateIdeasByLocation() {
   })
 
   useEffect(() => {
-    const unsubscribe = subscribeDateIdeas(setIdeas)
+    if (!coupleCode) return
+    const unsubscribe = subscribeDateIdeas(coupleCode, setIdeas)
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -36,7 +39,7 @@ export default function DateIdeasByLocation() {
       await updateDateIdea(editingId, formData)
       setEditingId(null)
     } else {
-      await addDateIdea(ideaData)
+      await addDateIdea(coupleCode, ideaData)
     }
 
     setFormData({ title: '', description: '', category: 'Romantic', location: '' })

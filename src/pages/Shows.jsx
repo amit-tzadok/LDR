@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Tv } from 'lucide-react'
 import { subscribeShows, addShow, updateShow, deleteShow } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 const statuses = ['Not Started', 'Watching', 'Finished']
 const platforms = ['Netflix', 'Hulu', 'Prime Video', 'Disney+', 'HBO Max', 'Apple TV+', 'Other']
@@ -10,6 +11,7 @@ export default function Shows() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [filterStatus, setFilterStatus] = useState('all')
+  const { coupleCode } = useCouple()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -19,9 +21,10 @@ export default function Shows() {
   })
 
   useEffect(() => {
-    const unsubscribe = subscribeShows(setShows)
+    if (!coupleCode) return
+    const unsubscribe = subscribeShows(coupleCode, setShows)
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -30,7 +33,7 @@ export default function Shows() {
       await updateShow(editingId, formData)
       setEditingId(null)
     } else {
-      await addShow(formData)
+      await addShow(coupleCode, formData)
     }
 
     setFormData({ title: '', platform: 'Netflix', status: 'Not Started', notes: '' })

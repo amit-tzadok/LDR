@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Mail, Send, Trash2, Heart } from 'lucide-react'
 import { getLetters, addLetter, deleteLetter } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Mailbox() {
   const [letters, setLetters] = useState([])
@@ -9,20 +10,22 @@ export default function Mailbox() {
   const [newLetter, setNewLetter] = useState({ subject: '', message: '', frogSticker: '' })
   const [selectedLetter, setSelectedLetter] = useState(null)
   const { currentUser } = useAuth()
+  const { coupleCode } = useCouple()
 
   const frogStickers = ['🐸', '🐊', '🦎', '🦖', '🪷', '💚', '🌿', '☘️']
 
   useEffect(() => {
-    const unsubscribe = getLetters((data) => {
+    if (!coupleCode) return
+    const unsubscribe = getLetters(coupleCode, (data) => {
       setLetters(data.sort((a, b) => b.createdAt - a.createdAt))
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (newLetter.subject.trim() && newLetter.message.trim()) {
-      await addLetter({
+      await addLetter(coupleCode, {
         ...newLetter,
         from: currentUser.email,
         read: false,

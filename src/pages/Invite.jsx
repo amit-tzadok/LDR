@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { Heart, Copy, Check, Mail, Link as LinkIcon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Heart, Copy, Check, Mail, Link as LinkIcon, Key } from 'lucide-react'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Invite() {
   const [copied, setCopied] = useState(false)
-  const appUrl = window.location.origin
-  const inviteMessage = `Hey! Join me on our LDR app so we can plan our future together! Sign up here: ${appUrl}`
+  const { coupleCode } = useCouple()
+  const appUrl = window.location.origin + window.location.pathname
+  const inviteMessage = `Hey! Join me on our LDR app! Use code: ${coupleCode || 'LOADING'}\n\nSign up here: ${appUrl}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(appUrl)
@@ -30,24 +32,31 @@ export default function Invite() {
         <div className="flex justify-center mb-4">
           <Heart className="w-16 h-16 text-pink-400 fill-pink-400 animate-pulse" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Invite Your Partner</h1>
-        <p className="text-gray-600">
-          Share this app with your partner so you can start planning your future together!
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Invite Your Partner</h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Share your couple code with your partner so they can join your private space!
         </p>
       </div>
 
-      {/* App Link Card */}
-      <div className="card">
+      {/* Couple Code Card */}
+      <div className="card bg-gradient-to-br from-pink-100 to-green-100 dark:from-pink-900/30 dark:to-green-900/30 border-2 border-pink-300 dark:border-pink-700">
         <div className="flex items-center gap-3 mb-4">
-          <LinkIcon className="w-6 h-6 text-pink-500" />
-          <h2 className="text-xl font-semibold text-gray-800">Share App Link</h2>
+          <Key className="w-7 h-7 text-pink-600 dark:text-pink-400" />
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Your Couple Code</h2>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <p className="text-sm text-gray-700 font-mono break-all">{appUrl}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-4 text-center border-2 border-pink-200 dark:border-pink-800">
+          <p className="text-4xl font-bold font-mono tracking-wider text-pink-600 dark:text-pink-400">
+            {coupleCode || 'Loading...'}
+          </p>
         </div>
         <button
-          onClick={handleCopyLink}
+          onClick={() => {
+            navigator.clipboard.writeText(coupleCode || '')
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }}
           className="btn-primary w-full inline-flex items-center justify-center gap-2"
+          disabled={!coupleCode}
         >
           {copied ? (
             <>
@@ -57,7 +66,7 @@ export default function Invite() {
           ) : (
             <>
               <Copy className="w-5 h-5" />
-              Copy Link
+              Copy Code
             </>
           )}
         </button>
@@ -91,37 +100,37 @@ export default function Invite() {
       </div>
 
       {/* Instructions Card */}
-      <div className="card bg-gradient-to-br from-pink-50 to-green-50 border-2 border-pink-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">How it works:</h3>
-        <ol className="space-y-2 text-gray-700">
+      <div className="card bg-gradient-to-br from-pink-50 to-green-50 dark:from-gray-800 dark:to-gray-700 border-2 border-pink-200 dark:border-pink-800">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">How it works:</h3>
+        <ol className="space-y-2 text-gray-700 dark:text-gray-300">
           <li className="flex gap-2">
             <span className="font-semibold text-pink-500">1.</span>
-            <span>Share the link or message with your partner</span>
+            <span>Share your couple code (<span className="font-mono font-bold">{coupleCode}</span>) with your partner</span>
           </li>
           <li className="flex gap-2">
             <span className="font-semibold text-green-500">2.</span>
-            <span>They create their own account (or use the same one)</span>
+            <span>They sign up at: {appUrl}</span>
           </li>
           <li className="flex gap-2">
             <span className="font-semibold text-pink-500">3.</span>
-            <span>You both can now see and edit all shared content!</span>
+            <span>During signup, they select "Join my partner's couple" and enter your code</span>
           </li>
           <li className="flex gap-2">
             <span className="font-semibold text-green-500">4.</span>
-            <span>Start planning your amazing future together!</span>
+            <span>You'll both see the same shared content - completely private to just you two!</span>
           </li>
         </ol>
       </div>
 
       {/* Security Note */}
-      <div className="card bg-blue-50 border border-blue-200">
+      <div className="card bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
         <div className="flex gap-3">
-          <div className="text-blue-600">🔒</div>
+          <div className="text-blue-600 dark:text-blue-400">🔒</div>
           <div>
-            <h4 className="font-semibold text-gray-800 mb-1">Privacy & Security</h4>
-            <p className="text-sm text-gray-600">
-              Only users who create accounts can access your shared data. 
-              Make sure to only share this link with your partner!
+            <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-1">Your Data is Private</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Only people with your couple code can join your space. Each couple has completely separate data. 
+              Keep your code safe and only share it with your partner!
             </p>
           </div>
         </div>

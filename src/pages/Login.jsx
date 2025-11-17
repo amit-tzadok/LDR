@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Heart } from 'lucide-react'
-import { createUserProfile } from '../services/firebase'
+import { Heart, Users } from 'lucide-react'
+import { createCouple, joinCouple } from '../services/coupleService'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [coupleCode, setCoupleCode] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
@@ -26,17 +28,28 @@ export default function Login() {
           setLoading(false)
           return
         }
+        
         const userCredential = await signUp(email, password)
-        await createUserProfile(userCredential.user.uid, {
-          name: name.trim(),
-          email: email
-        })
+        const userId = userCredential.user.uid
+        
+        if (isJoining) {
+          // Join existing couple with code
+          if (!coupleCode.trim()) {
+            setError('Please enter a couple code')
+            setLoading(false)
+            return
+          }
+          await joinCouple(userId, name.trim(), email, coupleCode.trim())
+        } else {
+          // Create new couple
+          await createCouple(userId, name.trim(), email)
+        }
       } else {
         await signIn(email, password)
       }
       navigate('/')
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -57,17 +70,60 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input"
-                required
-                placeholder="Your name"
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="input"
+                  required
+                  placeholder="Your name"
+                />
+              </div>
+              
+              <div className="bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-100">Couple Setup</h3>
+                </div>
+                <div className="space-y-2 mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={!isJoining}
+                      onChange={() => setIsJoining(false)}
+                      className="text-pink-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Start new couple (I'll invite my partner)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={isJoining}
+                      onChange={() => setIsJoining(true)}
+                      className="text-pink-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Join my partner's couple (I have a code)</span>
+                  </label>
+                </div>
+                
+                {isJoining && (
+                  <div>
+                    <input
+                      type="text"
+                      value={coupleCode}
+                      onChange={(e) => setCoupleCode(e.target.value.toUpperCase())}
+                      className="input text-center font-mono text-lg"
+                      placeholder="Enter couple code"
+                      required
+                      maxLength={8}
+                    />
+                  </div>
+                )}
+              </div>
+            </>
           )}
           
           <div>

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Plane } from 'lucide-react'
 import { subscribeFutureTrips, addFutureTrip, updateFutureTrip, deleteFutureTrip } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 const priorities = ['Low', 'Medium', 'High']
 
 export default function FutureTrips() {
+  const { coupleCode } = useCouple()
   const [trips, setTrips] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -18,9 +20,10 @@ export default function FutureTrips() {
   })
 
   useEffect(() => {
-    const unsubscribe = subscribeFutureTrips(setTrips)
+    if (!coupleCode) return
+    const unsubscribe = subscribeFutureTrips(coupleCode, setTrips)
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -29,7 +32,7 @@ export default function FutureTrips() {
       await updateFutureTrip(editingId, formData)
       setEditingId(null)
     } else {
-      await addFutureTrip(formData)
+      await addFutureTrip(coupleCode, formData)
     }
 
     setFormData({ destination: '', priority: 'Medium', estimatedDate: '', notes: '' })

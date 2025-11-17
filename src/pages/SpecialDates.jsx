@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Calendar, Heart } from 'lucide-react'
 import { subscribeSpecialDates, addSpecialDate, updateSpecialDate, deleteSpecialDate } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 const categories = ['Anniversary', 'Birthday', 'First Date', 'Trip', 'Milestone', 'Other']
 
 export default function SpecialDates() {
+  const { coupleCode } = useCouple()
   const [dates, setDates] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -17,9 +19,10 @@ export default function SpecialDates() {
   })
 
   useEffect(() => {
-    const unsubscribe = subscribeSpecialDates(setDates)
+    if (!coupleCode) return
+    const unsubscribe = subscribeSpecialDates(coupleCode, setDates)
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -28,7 +31,7 @@ export default function SpecialDates() {
       await updateSpecialDate(editingId, formData)
       setEditingId(null)
     } else {
-      await addSpecialDate(formData)
+      await addSpecialDate(coupleCode, formData)
     }
 
     setFormData({ title: '', date: '', category: 'Anniversary', notes: '' })

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Award, Plus, Edit2, Trash2, Calendar, Heart, Sparkles } from 'lucide-react'
 import { getMilestones, addMilestone, updateMilestone, deleteMilestone, getSettings } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function Milestones() {
   const [milestones, setMilestones] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [relationshipStart, setRelationshipStart] = useState('')
+  const { coupleCode } = useCouple()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,18 +22,20 @@ export default function Milestones() {
   const categories = ['First', 'Anniversary', 'Trip', 'Achievement', 'Other']
 
   useEffect(() => {
-    const unsubscribe = getMilestones((data) => {
+    if (!coupleCode) return
+    const unsubscribe = getMilestones(coupleCode, (data) => {
       setMilestones(data)
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   useEffect(() => {
-    const unsubscribe = getSettings((settings) => {
+    if (!coupleCode) return
+    const unsubscribe = getSettings(coupleCode, (settings) => {
       setRelationshipStart(settings.relationshipStart || '')
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const calculateTimeTogether = () => {
     if (!relationshipStart) return null
@@ -55,7 +59,7 @@ export default function Milestones() {
       await updateMilestone(editingId, formData)
       setEditingId(null)
     } else {
-      await addMilestone({
+      await addMilestone(coupleCode, {
         ...formData,
         createdAt: Date.now()
       })

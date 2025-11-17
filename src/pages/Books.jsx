@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, BookOpen } from 'lucide-react'
 import { subscribeBooks, addBook, updateBook, deleteBook } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 const statuses = ['Not Started', 'In Progress', 'Finished']
 
@@ -9,6 +10,7 @@ export default function Books() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [filterStatus, setFilterStatus] = useState('all')
+  const { coupleCode } = useCouple()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -18,9 +20,10 @@ export default function Books() {
   })
 
   useEffect(() => {
-    const unsubscribe = subscribeBooks(setBooks)
+    if (!coupleCode) return
+    const unsubscribe = subscribeBooks(coupleCode, setBooks)
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -29,7 +32,7 @@ export default function Books() {
       await updateBook(editingId, formData)
       setEditingId(null)
     } else {
-      await addBook(formData)
+      await addBook(coupleCode, formData)
     }
 
     setFormData({ title: '', author: '', status: 'Not Started', notes: '' })

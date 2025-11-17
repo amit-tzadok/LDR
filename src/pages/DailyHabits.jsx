@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { CheckCircle2, Circle, Plus, Trash2, Calendar, Sparkles } from 'lucide-react'
 import { getDailyHabits, addDailyHabit, updateDailyHabit, deleteDailyHabit, getAllUserProfiles } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function DailyHabits() {
+  const { coupleCode } = useCouple()
   const [habits, setHabits] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [newHabit, setNewHabit] = useState('')
@@ -12,18 +14,20 @@ export default function DailyHabits() {
   const { currentUser } = useAuth()
 
   useEffect(() => {
-    const unsubscribe = getDailyHabits((data) => {
+    if (!coupleCode) return
+    const unsubscribe = getDailyHabits(coupleCode, (data) => {
       setHabits(data)
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   useEffect(() => {
-    const unsubscribe = getAllUserProfiles((profiles) => {
+    if (!coupleCode) return
+    const unsubscribe = getAllUserProfiles(coupleCode, (profiles) => {
       setUserProfiles(profiles)
     })
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0]
@@ -103,7 +107,7 @@ export default function DailyHabits() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (newHabit.trim()) {
-      await addDailyHabit({
+      await addDailyHabit(coupleCode, {
         habit: newHabit,
         createdBy: currentUser.email,
         completions: {},

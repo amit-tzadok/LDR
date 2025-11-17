@@ -24,13 +24,20 @@ export const getSettings = (coupleCode, callback) => {
     } else {
       callback({ nextMeetDate: '', relationshipStart: '' })
     }
+  }, (error) => {
+    console.error('Error loading settings:', error)
   })
 }
 
 export const updateNextMeetDate = async (coupleCode, date) => {
   if (!coupleCode) return
-  const settingsRef = doc(db, 'settings', coupleCode)
-  await setDoc(settingsRef, { nextMeetDate: date, coupleCode }, { merge: true })
+  try {
+    const settingsRef = doc(db, 'settings', coupleCode)
+    await setDoc(settingsRef, { nextMeetDate: date, coupleCode }, { merge: true })
+  } catch (error) {
+    console.error('Error saving date:', error)
+    throw error
+  }
 }
 
 export const updateRelationshipStart = async (coupleCode, date) => {
@@ -40,19 +47,17 @@ export const updateRelationshipStart = async (coupleCode, date) => {
 }
 
 // Date Ideas
-export const subscribeDateIdeas = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'dateIdeas'), where('coupleCode', '==', coupleCode), orderBy('timestamp', 'desc'))
+export const subscribeDateIdeas = (callback) => {
+  const q = query(collection(db, 'dateIdeas'), orderBy('timestamp', 'desc'))
   return onSnapshot(q, (snapshot) => {
     const ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(ideas)
   })
 }
 
-export const addDateIdea = async (coupleCode, idea) => {
+export const addDateIdea = async (idea) => {
   await addDoc(collection(db, 'dateIdeas'), {
     ...idea,
-    coupleCode,
     timestamp: serverTimestamp(),
     completed: false
   })
@@ -68,17 +73,16 @@ export const deleteDateIdea = async (id) => {
 }
 
 // Books
-export const subscribeBooks = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'books'), where('coupleCode', '==', coupleCode))
+export const subscribeBooks = (callback) => {
+  const q = query(collection(db, 'books'))
   return onSnapshot(q, (snapshot) => {
     const books = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(books)
   })
 }
 
-export const addBook = async (coupleCode, book) => {
-  await addDoc(collection(db, 'books'), { ...book, coupleCode })
+export const addBook = async (book) => {
+  await addDoc(collection(db, 'books'), book)
 }
 
 export const updateBook = async (id, updates) => {
@@ -91,17 +95,16 @@ export const deleteBook = async (id) => {
 }
 
 // Shows
-export const subscribeShows = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'shows'), where('coupleCode', '==', coupleCode))
+export const subscribeShows = (callback) => {
+  const q = query(collection(db, 'shows'))
   return onSnapshot(q, (snapshot) => {
     const shows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(shows)
   })
 }
 
-export const addShow = async (coupleCode, show) => {
-  await addDoc(collection(db, 'shows'), { ...show, coupleCode })
+export const addShow = async (show) => {
+  await addDoc(collection(db, 'shows'), show)
 }
 
 export const updateShow = async (id, updates) => {
@@ -114,17 +117,16 @@ export const deleteShow = async (id) => {
 }
 
 // Future Trips
-export const subscribeFutureTrips = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'futureTrips'), where('coupleCode', '==', coupleCode))
+export const subscribeFutureTrips = (callback) => {
+  const q = query(collection(db, 'futureTrips'))
   return onSnapshot(q, (snapshot) => {
     const trips = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(trips)
   })
 }
 
-export const addFutureTrip = async (coupleCode, trip) => {
-  await addDoc(collection(db, 'futureTrips'), { ...trip, coupleCode })
+export const addFutureTrip = async (trip) => {
+  await addDoc(collection(db, 'futureTrips'), trip)
 }
 
 export const updateFutureTrip = async (id, updates) => {
@@ -137,17 +139,16 @@ export const deleteFutureTrip = async (id) => {
 }
 
 // Dream Trips
-export const subscribeDreamTrips = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'dreamTrips'), where('coupleCode', '==', coupleCode))
+export const subscribeDreamTrips = (callback) => {
+  const q = query(collection(db, 'dreamTrips'))
   return onSnapshot(q, (snapshot) => {
     const trips = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(trips)
   })
 }
 
-export const addDreamTrip = async (coupleCode, trip) => {
-  await addDoc(collection(db, 'dreamTrips'), { ...trip, coupleCode })
+export const addDreamTrip = async (trip) => {
+  await addDoc(collection(db, 'dreamTrips'), trip)
 }
 
 export const updateDreamTrip = async (id, updates) => {
@@ -160,17 +161,16 @@ export const deleteDreamTrip = async (id) => {
 }
 
 // Special Dates
-export const subscribeSpecialDates = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'specialDates'), where('coupleCode', '==', coupleCode))
+export const subscribeSpecialDates = (callback) => {
+  const q = query(collection(db, 'specialDates'))
   return onSnapshot(q, (snapshot) => {
     const dates = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(dates)
   })
 }
 
-export const addSpecialDate = async (coupleCode, dateItem) => {
-  await addDoc(collection(db, 'specialDates'), { ...dateItem, coupleCode })
+export const addSpecialDate = async (dateItem) => {
+  await addDoc(collection(db, 'specialDates'), dateItem)
 }
 
 export const updateSpecialDate = async (id, updates) => {
@@ -183,17 +183,16 @@ export const deleteSpecialDate = async (id) => {
 }
 
 // Letters
-export const getLetters = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'letters'), where('coupleCode', '==', coupleCode), orderBy('createdAt', 'desc'))
+export const getLetters = (callback) => {
+  const q = query(collection(db, 'letters'), orderBy('createdAt', 'desc'))
   return onSnapshot(q, (snapshot) => {
     const letters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(letters)
   })
 }
 
-export const addLetter = async (coupleCode, letter) => {
-  await addDoc(collection(db, 'letters'), { ...letter, coupleCode })
+export const addLetter = async (letter) => {
+  await addDoc(collection(db, 'letters'), letter)
 }
 
 export const deleteLetter = async (id) => {
@@ -201,17 +200,16 @@ export const deleteLetter = async (id) => {
 }
 
 // Gratitude
-export const getGratitudes = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'gratitudes'), where('coupleCode', '==', coupleCode), orderBy('createdAt', 'desc'))
+export const getGratitudes = (callback) => {
+  const q = query(collection(db, 'gratitudes'), orderBy('createdAt', 'desc'))
   return onSnapshot(q, (snapshot) => {
     const gratitudes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(gratitudes)
   })
 }
 
-export const addGratitude = async (coupleCode, gratitude) => {
-  await addDoc(collection(db, 'gratitudes'), { ...gratitude, coupleCode })
+export const addGratitude = async (gratitude) => {
+  await addDoc(collection(db, 'gratitudes'), gratitude)
 }
 
 export const deleteGratitude = async (id) => {
@@ -219,17 +217,16 @@ export const deleteGratitude = async (id) => {
 }
 
 // Milestones
-export const getMilestones = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'milestones'), where('coupleCode', '==', coupleCode), orderBy('date', 'desc'))
+export const getMilestones = (callback) => {
+  const q = query(collection(db, 'milestones'), orderBy('date', 'desc'))
   return onSnapshot(q, (snapshot) => {
     const milestones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(milestones)
   })
 }
 
-export const addMilestone = async (coupleCode, milestone) => {
-  await addDoc(collection(db, 'milestones'), { ...milestone, coupleCode })
+export const addMilestone = async (milestone) => {
+  await addDoc(collection(db, 'milestones'), milestone)
 }
 
 export const updateMilestone = async (id, updates) => {
@@ -242,17 +239,16 @@ export const deleteMilestone = async (id) => {
 }
 
 // Daily Habits
-export const getDailyHabits = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'dailyHabits'), where('coupleCode', '==', coupleCode), orderBy('createdAt', 'desc'))
+export const getDailyHabits = (callback) => {
+  const q = query(collection(db, 'dailyHabits'), orderBy('createdAt', 'desc'))
   return onSnapshot(q, (snapshot) => {
     const habits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     callback(habits)
   })
 }
 
-export const addDailyHabit = async (coupleCode, habit) => {
-  await addDoc(collection(db, 'dailyHabits'), { ...habit, coupleCode })
+export const addDailyHabit = async (habit) => {
+  await addDoc(collection(db, 'dailyHabits'), habit)
 }
 
 export const updateDailyHabit = async (id, updates) => {
@@ -299,9 +295,8 @@ export const updateUserProfile = async (userId, updates) => {
   }, { merge: true })
 }
 
-export const getAllUserProfiles = (coupleCode, callback) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'userProfiles'), where('coupleCode', '==', coupleCode))
+export const getAllUserProfiles = (callback) => {
+  const q = query(collection(db, 'userProfiles'))
   return onSnapshot(q, (snapshot) => {
     const profiles = {}
     snapshot.docs.forEach(doc => {

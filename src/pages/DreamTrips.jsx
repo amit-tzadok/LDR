@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Sparkles } from 'lucide-react'
 import { subscribeDreamTrips, addDreamTrip, updateDreamTrip, deleteDreamTrip } from '../services/firebase'
+import { useCouple } from '../contexts/CoupleContext'
 
 export default function DreamTrips() {
+  const { coupleCode } = useCouple()
   const [trips, setTrips] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -14,9 +16,10 @@ export default function DreamTrips() {
   })
 
   useEffect(() => {
-    const unsubscribe = subscribeDreamTrips(setTrips)
+    if (!coupleCode) return
+    const unsubscribe = subscribeDreamTrips(coupleCode, setTrips)
     return unsubscribe
-  }, [])
+  }, [coupleCode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,7 +28,7 @@ export default function DreamTrips() {
       await updateDreamTrip(editingId, formData)
       setEditingId(null)
     } else {
-      await addDreamTrip(formData)
+      await addDreamTrip(coupleCode, formData)
     }
 
     setFormData({ destination: '', why: '', pictureUrl: '' })
