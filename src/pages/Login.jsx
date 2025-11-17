@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Heart, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { createCouple, joinCouple } from '../services/coupleService'
 import { useCouple } from '../contexts/CoupleContext'
 
@@ -64,9 +64,6 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <Heart className="w-16 h-16 text-pink-500 fill-pink-500 animate-pulse" />
-          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-green-500 bg-clip-text text-transparent">
             LDR App
           </h1>
