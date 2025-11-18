@@ -36,7 +36,11 @@ export default function DailyHabits() {
   }, [coupleCode])
 
   const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0]
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const isCompletedToday = (habit) => {
@@ -89,7 +93,10 @@ export default function DailyHabits() {
     for (let i = 0; i < dates.length + 1; i++) {
       const checkDate = new Date(currentDate)
       checkDate.setDate(checkDate.getDate() - i)
-      const dateStr = checkDate.toISOString().split('T')[0]
+      const year = checkDate.getFullYear()
+      const month = String(checkDate.getMonth() + 1).padStart(2, '0')
+      const day = String(checkDate.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${day}`
       
       if (dates.includes(dateStr)) {
         streak++
