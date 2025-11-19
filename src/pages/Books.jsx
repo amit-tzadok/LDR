@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, X, BookOpen } from 'lucide-react'
-import { subscribeBooks, addBook, updateBook, deleteBook } from '../services/firebase'
+import { Plus, Edit2, Trash2, X, BookOpen, Star, MessageCircle, Send } from 'lucide-react'
+import { subscribeBooks, addBook, updateBook, deleteBook, subscribeBookDiscussions, addBookDiscussion, deleteBookDiscussion, getAllUserProfiles } from '../services/firebase'
 import { useCouple } from '../contexts/CoupleContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const statuses = ['Not Started', 'In Progress', 'Finished']
 
@@ -10,13 +11,19 @@ export default function Books() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [filterStatus, setFilterStatus] = useState('all')
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [discussions, setDiscussions] = useState([])
+  const [newDiscussion, setNewDiscussion] = useState('')
+  const [userProfiles, setUserProfiles] = useState({})
   const { coupleCode } = useCouple()
+  const { currentUser } = useAuth()
 
   const [formData, setFormData] = useState({
     title: '',
     author: '',
     status: 'Not Started',
     notes: '',
+    rating: 0,
   })
 
   useEffect(() => {
@@ -24,6 +31,18 @@ export default function Books() {
     const unsubscribe = subscribeBooks(coupleCode, setBooks)
     return unsubscribe
   }, [coupleCode])
+
+  useEffect(() => {
+    if (!coupleCode) return
+    const unsubscribe = getAllUserProfiles(coupleCode, setUserProfiles)
+    return unsubscribe
+  }, [coupleCode])
+
+  useEffect(() => {
+    if (!selectedBook) return
+    const unsubscribe = subscribeBookDiscussions(selectedBook.id, setDiscussions)
+    return unsubscribe
+  }, [selectedBook])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -35,7 +54,7 @@ export default function Books() {
       await addBook(coupleCode, formData)
     }
 
-    setFormData({ title: '', author: '', status: 'Not Started', notes: '' })
+    setFormData({ title: '', author: '', status: 'Not Started', notes: '', rating: 0 })
     setShowForm(false)
   }
 
@@ -45,6 +64,7 @@ export default function Books() {
       author: book.author,
       status: book.status,
       notes: book.notes || '',
+      rating: book.rating || 0,
     })
     setEditingId(book.id)
     setShowForm(true)
@@ -54,6 +74,49 @@ export default function Books() {
     if (window.confirm('Are you sure you want to delete this book?')) {
       await deleteBook(id)
     }
+  }
+
+  const handleDiscussionSubmit = async (e) => {
+    e.preventDefault()
+    if (newDiscussion.trim() && selectedBook) {
+      await addBookDiscussion(selectedBook.id, {
+        message: newDiscussion,
+        createdBy: currentUser.uid,
+        createdByEmail: currentUser.email
+      })
+      setNewDiscussion('')
+    }
+  }
+
+  const handleDiscussionDelete = async (id) => {
+    if (window.confirm('Delete this message?')) {
+      await deleteBookDiscussion(id)
+    }
+  }
+
+  const getAuthorName = (userId) => {
+    const profile = userProfiles[userId]
+    return profile?.name || profile?.email || 'Unknown'
+  }
+
+  const renderStars = (rating, interactive = false, onChange = null) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map(star => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => interactive && onChange && onChange(star)}
+            className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
+            disabled={!interactive}
+          >
+            <Star
+              className={`w-5 h-5 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+            />
+          </button>
+        ))}
+      </div>
+    )
   }
 
   const filteredBooks = books.filter(book => {
@@ -82,7 +145,7 @@ export default function Books() {
           onClick={() => {
             setShowForm(!showForm)
             setEditingId(null)
-            setFormData({ title: '', author: '', status: 'Not Started', notes: '' })
+            setFormData({ title: '', author: '', status: 'Not Started', notes: '', rating: 0 })
           }}
           className="btn-primary inline-flex items-center gap-2"
         >
@@ -164,7 +227,7 @@ export default function Books() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -172,6 +235,11 @@ export default function Books() {
               rows={3}
               placeholder="Your thoughts about this book..."
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
+            {renderStars(formData.rating, true, (rating) => setFormData({ ...formData, rating }))}
           </div>
 
           <button type="submit" className="btn-primary w-full">
@@ -210,15 +278,32 @@ export default function Books() {
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">{book.title}</h3>
-              <p className="text-gray-600 text-sm mb-3">by {book.author}</p>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{book.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">by {book.author}</p>
               
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(book.status)}`}>
-                {book.status}
-              </span>
+              {book.rating > 0 && (
+                <div className="mb-3">
+                  {renderStars(book.rating)}
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(book.status)}`}>
+                  {book.status}
+                </span>
+                {book.status === 'In Progress' && (
+                  <button
+                    onClick={() => setSelectedBook(book)}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300 hover:bg-pink-200 dark:hover:bg-pink-800 transition-colors"
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    Discuss
+                  </button>
+                )}
+              </div>
 
               {book.notes && (
-                <p className="text-gray-600 text-sm mt-3 pt-3 border-t border-gray-100">
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   {book.notes}
                 </p>
               )}
@@ -226,6 +311,86 @@ export default function Books() {
           ))
         )}
       </div>
+
+      {/* Discussion Modal */}
+      {selectedBook && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{selectedBook.title}</h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">by {selectedBook.author}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedBook(null)
+                    setDiscussions([])
+                  }}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {discussions.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">No discussions yet. Start the conversation!</p>
+                </div>
+              ) : (
+                discussions.map(discussion => (
+                  <div key={discussion.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
+                          {getAuthorName(discussion.createdBy)}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {discussion.createdAt?.toDate ? new Date(discussion.createdAt.toDate()).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          }) : 'Just now'}
+                        </span>
+                      </div>
+                      {discussion.createdBy === currentUser.uid && (
+                        <button
+                          onClick={() => handleDiscussionDelete(discussion.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-gray-700 dark:text-gray-300">{discussion.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <form onSubmit={handleDiscussionSubmit} className="p-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newDiscussion}
+                  onChange={(e) => setNewDiscussion(e.target.value)}
+                  placeholder="Share your thoughts..."
+                  className="input flex-1"
+                  required
+                />
+                <button type="submit" className="btn-primary flex items-center gap-2">
+                  <Send className="w-5 h-5" />
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

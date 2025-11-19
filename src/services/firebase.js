@@ -311,6 +311,24 @@ export const deleteStickyNote = async (id) => {
   await deleteDoc(doc(db, 'stickyNotes', id))
 }
 
+// Book Discussions
+export const subscribeBookDiscussions = (bookId, callback) => {
+  if (!bookId) return () => {}
+  const q = query(collection(db, 'bookDiscussions'), where('bookId', '==', bookId), orderBy('createdAt', 'desc'))
+  return onSnapshot(q, (snapshot) => {
+    const discussions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    callback(discussions)
+  })
+}
+
+export const addBookDiscussion = async (bookId, discussion) => {
+  await addDoc(collection(db, 'bookDiscussions'), { ...discussion, bookId, createdAt: serverTimestamp() })
+}
+
+export const deleteBookDiscussion = async (id) => {
+  await deleteDoc(doc(db, 'bookDiscussions', id))
+}
+
 // Reactions - generic function for gratitudes and sticky notes
 export const toggleReaction = async (collection, itemId, userId, emoji) => {
   const docRef = doc(db, collection, itemId)
