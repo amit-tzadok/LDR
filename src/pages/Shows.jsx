@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, X, Tv, Film } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Tv, Film, Star } from 'lucide-react'
 import { subscribeShows, addShow, updateShow, deleteShow } from '../services/firebase'
 import { useCouple } from '../contexts/CoupleContext'
 
@@ -21,6 +21,7 @@ export default function Shows() {
     platform: 'Netflix',
     status: 'Not Started',
     notes: '',
+    rating: 0,
   })
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function Shows() {
       await addShow(coupleCode, formData)
     }
 
-    setFormData({ title: '', platform: 'Netflix', status: 'Not Started', notes: '' })
+    setFormData({ title: '', type: 'Show', platform: 'Netflix', status: 'Not Started', notes: '', rating: 0 })
     setShowForm(false)
   }
 
@@ -50,6 +51,7 @@ export default function Shows() {
       platform: show.platform,
       status: show.status,
       notes: show.notes || '',
+      rating: show.rating || 0,
     })
     setEditingId(show.id)
     setShowForm(true)
@@ -88,7 +90,7 @@ export default function Shows() {
           onClick={() => {
             setShowForm(!showForm)
             setEditingId(null)
-            setFormData({ title: '', type: 'Show', platform: 'Netflix', status: 'Not Started', notes: '' })
+            setFormData({ title: '', type: 'Show', platform: 'Netflix', status: 'Not Started', notes: '', rating: 0 })
           }}
           className="btn-primary inline-flex items-center gap-2"
         >
@@ -213,6 +215,37 @@ export default function Shows() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating (optional)</label>
+            <div className="flex gap-2 items-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, rating: star })}
+                  className="transition-colors"
+                >
+                  <Star
+                    className={`w-8 h-8 ${
+                      star <= formData.rating
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300 dark:text-gray-600'
+                    }`}
+                  />
+                </button>
+              ))}
+              {formData.rating > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, rating: 0 })}
+                  className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 ml-2"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
             <textarea
               value={formData.notes}
@@ -272,9 +305,19 @@ export default function Shows() {
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{show.platform}</p>
               
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(show.status)}`}>
-                {show.status}
-              </span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(show.status)}`}>
+                  {show.status}
+                </span>
+                
+                {show.rating > 0 && (
+                  <div className="flex items-center gap-1">
+                    {[...Array(show.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {show.notes && (
                 <p className="text-gray-600 dark:text-gray-300 text-sm mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">

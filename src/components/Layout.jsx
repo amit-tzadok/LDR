@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { subscribeUserProfile } from '../services/firebase'
-import { Home, Heart, CheckCircle2, Award, MoreHorizontal, LogOut, Moon, Sun } from 'lucide-react'
+import { Home, Heart, CheckCircle2, Award, MoreHorizontal, LogOut, Moon, Sun, Settings } from 'lucide-react'
 
 export default function Layout() {
   const { signOut, currentUser } = useAuth()
@@ -66,6 +66,13 @@ export default function Layout() {
               ) : (
                 <Moon className="w-5 h-5 text-pink-500" />
               )}
+            </button>
+            <button
+              onClick={() => navigate('/more')}
+              className="p-2 rounded-full hover:bg-pink-50 dark:hover:bg-gray-700 transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5 text-pink-500" />
             </button>
             <button
               onClick={handleSignOut}

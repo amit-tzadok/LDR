@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, X, Sparkles } from 'lucide-react'
-import { subscribeDreamTrips, addDreamTrip, updateDreamTrip, deleteDreamTrip } from '../services/firebase'
+import { Plus, Edit2, Trash2, X, Sparkles, ArrowRight } from 'lucide-react'
+import { subscribeDreamTrips, addDreamTrip, updateDreamTrip, deleteDreamTrip, addFutureTrip } from '../services/firebase'
 import { useCouple } from '../contexts/CoupleContext'
 
 export default function DreamTrips() {
@@ -48,6 +48,22 @@ export default function DreamTrips() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this dream trip?')) {
       await deleteDreamTrip(id)
+    }
+  }
+
+  const handleTransfer = async (trip) => {
+    if (window.confirm(`Transfer "${trip.destination}" to Future Trips?`)) {
+      try {
+        await addFutureTrip(coupleCode, {
+          destination: trip.destination,
+          estimatedDate: '',
+          notes: trip.why || ''
+        })
+        await deleteDreamTrip(trip.id)
+      } catch (error) {
+        console.error('Error transferring trip:', error)
+        alert('Failed to transfer trip')
+      }
     }
   }
 
@@ -146,6 +162,13 @@ export default function DreamTrips() {
                 <div className="flex justify-between items-start mb-3">
                   <Sparkles className="w-8 h-8 text-green-400" />
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => handleTransfer(trip)}
+                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors"
+                      title="Transfer to Future Trips"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => handleEdit(trip)}
                       className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors"

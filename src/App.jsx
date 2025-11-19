@@ -16,6 +16,7 @@ import Milestones from './pages/Milestones'
 import DailyHabits from './pages/DailyHabits'
 import Profile from './pages/Profile'
 import More from './pages/More'
+import StickyNotes from './pages/StickyNotes'
 import Layout from './components/Layout'
 
 const pageVariants = {
@@ -72,6 +73,7 @@ function App() {
           <Route path="gratitude" element={<AnimatedPage><Gratitude /></AnimatedPage>} />
           <Route path="milestones" element={<AnimatedPage><Milestones /></AnimatedPage>} />
           <Route path="daily-habits" element={<AnimatedPage><DailyHabits /></AnimatedPage>} />
+          <Route path="sticky-notes" element={<AnimatedPage><StickyNotes /></AnimatedPage>} />
           <Route path="profile" element={<AnimatedPage><Profile /></AnimatedPage>} />
           <Route path="more" element={<AnimatedPage><More /></AnimatedPage>} />
         </Route>

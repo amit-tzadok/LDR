@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { MapPin, BookOpen, Tv, Plane, Sparkles, UserPlus, User, Settings } from 'lucide-react'
+import { MapPin, BookOpen, Tv, Plane, Sparkles, UserPlus, User, Settings, StickyNote } from 'lucide-react'
 
 export default function More() {
   const navigate = useNavigate()
@@ -11,6 +11,13 @@ export default function More() {
       path: '/profile',
       gradient: 'from-pink-400 to-pink-500',
       description: 'Update your name and settings'
+    },
+    { 
+      title: 'Sticky Notes', 
+      icon: StickyNote, 
+      path: '/sticky-notes',
+      gradient: 'from-yellow-300 to-orange-400',
+      description: 'Quick notes for your partner'
     },
     { 
       title: 'Books', 

@@ -315,3 +315,21 @@ export const getAllUserProfiles = (coupleCode, callback) => {
     callback(profiles)
   })
 }
+
+// Sticky Notes
+export const subscribeStickyNotes = (coupleCode, callback) => {
+  if (!coupleCode) return () => {}
+  const q = query(collection(db, 'stickyNotes'), where('coupleCode', '==', coupleCode), orderBy('createdAt', 'desc'))
+  return onSnapshot(q, (snapshot) => {
+    const notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    callback(notes)
+  })
+}
+
+export const addStickyNote = async (coupleCode, note) => {
+  await addDoc(collection(db, 'stickyNotes'), { ...note, coupleCode })
+}
+
+export const deleteStickyNote = async (id) => {
+  await deleteDoc(doc(db, 'stickyNotes', id))
+}
