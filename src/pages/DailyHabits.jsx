@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle2, Circle, Plus, Trash2, Calendar, Sparkles } from 'lucide-react'
+import { CheckCircle2, Circle, Plus, Trash2, Calendar, Sparkles, TrendingUp, BarChart3 } from 'lucide-react'
 import { getDailyHabits, addDailyHabit, updateDailyHabit, deleteDailyHabit, getAllUserProfiles } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { useCouple } from '../contexts/CoupleContext'
@@ -11,6 +11,7 @@ export default function DailyHabits() {
   const [newHabit, setNewHabit] = useState('')
   const [showCelebration, setShowCelebration] = useState(false)
   const [userProfiles, setUserProfiles] = useState({})
+  const [showAnalytics, setShowAnalytics] = useState(false)
   const { currentUser } = useAuth()
 
   console.log('DailyHabits - coupleCode:', coupleCode, 'currentUser:', currentUser?.email)
@@ -180,6 +181,68 @@ export default function DailyHabits() {
 
   const completedCount = habits.filter(h => isCompletedToday(h)).length
 
+  // Analytics functions
+  const getLast7Days = () => {
+    const days = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      days.push({
+        date: `${year}-${month}-${day}`,
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNumber: date.getDate()
+      })
+    }
+    return days
+  }
+
+  const getCompletionRate = () => {
+    if (habits.length === 0) return 0
+    const last7Days = getLast7Days()
+    let totalPossible = habits.length * 7
+    let totalCompleted = 0
+    
+    habits.forEach(habit => {
+      last7Days.forEach(day => {
+        if (habit.completions?.[day.date]?.both) {
+          totalCompleted++
+        }
+      })
+    })
+    
+    return totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0
+  }
+
+  const getLongestStreak = () => {
+    if (habits.length === 0) return 0
+    return Math.max(...habits.map(h => getStreak(h)))
+  }
+
+  const getTotalCompletions = () => {
+    let total = 0
+    habits.forEach(habit => {
+      if (habit.completions) {
+        Object.keys(habit.completions).forEach(date => {
+          if (habit.completions[date].both) total++
+        })
+      }
+    })
+    return total
+  }
+
+  const getCompletionsForDay = (dateStr) => {
+    let count = 0
+    habits.forEach(habit => {
+      if (habit.completions?.[dateStr]?.both) {
+        count++
+      }
+    })
+    return count
+  }
+
   return (
     <div className="space-y-6">
       {/* Celebration Banner */}
@@ -200,19 +263,124 @@ export default function DailyHabits() {
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
             <CheckCircle2 className="w-8 h-8 text-pink-500" />
             Daily Habits
+            {habits.length > 0 && getLongestStreak() > 0 && (
+              <span className="text-lg bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-full font-bold">
+                🔥 {getLongestStreak()} day{getLongestStreak() !== 1 ? 's' : ''}
+              </span>
+            )}
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
             Build healthy habits together
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Habit
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowAnalytics(!showAnalytics)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              showAnalytics
+                ? 'bg-pink-500 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <BarChart3 className="w-5 h-5" />
+            Analytics
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Habit
+          </button>
+        </div>
       </div>
+
+      {/* Analytics Section */}
+      {showAnalytics && habits.length > 0 && (
+        <div className="space-y-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="card bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 border-2 border-pink-200 dark:border-pink-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">7-Day Rate</p>
+                  <p className="text-3xl font-bold text-pink-600 dark:text-pink-400">{getCompletionRate()}%</p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-pink-500" />
+              </div>
+            </div>
+            
+            <div className="card bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-2 border-orange-200 dark:border-orange-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</p>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{getLongestStreak()} 🔥</p>
+                </div>
+                <Sparkles className="w-8 h-8 text-orange-500" />
+              </div>
+            </div>
+            
+            <div className="card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-2 border-green-200 dark:border-green-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Completions</p>
+                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">{getTotalCompletions()}</p>
+                </div>
+                <CheckCircle2 className="w-8 h-8 text-green-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly View */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-pink-500" />
+              Last 7 Days
+            </h3>
+            <div className="grid grid-cols-7 gap-2">
+              {getLast7Days().map(day => {
+                const completions = getCompletionsForDay(day.date)
+                const percentage = habits.length > 0 ? (completions / habits.length) * 100 : 0
+                const isToday = day.date === getTodayDate()
+                
+                return (
+                  <div key={day.date} className="flex flex-col items-center gap-2">
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                      {day.dayName}
+                    </div>
+                    <div 
+                      className={`w-full aspect-square rounded-lg flex flex-col items-center justify-center transition-all ${
+                        percentage === 100 
+                          ? 'bg-green-500 text-white' 
+                          : percentage > 0 
+                          ? 'bg-yellow-400 text-gray-800'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
+                      } ${isToday ? 'ring-2 ring-pink-500' : ''}`}
+                    >
+                      <div className="text-xs font-bold">{day.dayNumber}</div>
+                      <div className="text-xs">{completions}/{habits.length}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex items-center justify-center gap-4 mt-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-green-500"></div>
+                <span className="text-gray-600 dark:text-gray-400">All done</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-yellow-400"></div>
+                <span className="text-gray-600 dark:text-gray-400">Partial</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-gray-100 dark:bg-gray-800"></div>
+                <span className="text-gray-600 dark:text-gray-400">None</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Progress Card */}
       {habits.length > 0 && (
