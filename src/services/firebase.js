@@ -182,29 +182,6 @@ export const deleteSpecialDate = async (id) => {
   await deleteDoc(doc(db, 'specialDates', id))
 }
 
-// Letters
-export const getLetters = (coupleCode, callback, onError) => {
-  if (!coupleCode) return () => {}
-  const q = query(collection(db, 'letters'), where('coupleCode', '==', coupleCode), orderBy('createdAt', 'desc'))
-  return onSnapshot(q, (snapshot) => {
-    const letters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    callback(letters)
-  }, (error) => {
-    console.error('Error in getLetters snapshot:', error)
-    if (onError) {
-      onError(error)
-    }
-  })
-}
-
-export const addLetter = async (coupleCode, letter) => {
-  await addDoc(collection(db, 'letters'), { ...letter, coupleCode })
-}
-
-export const deleteLetter = async (id) => {
-  await deleteDoc(doc(db, 'letters', id))
-}
-
 // Gratitude
 export const getGratitudes = (coupleCode, callback) => {
   if (!coupleCode) return () => {}
@@ -332,4 +309,27 @@ export const addStickyNote = async (coupleCode, note) => {
 
 export const deleteStickyNote = async (id) => {
   await deleteDoc(doc(db, 'stickyNotes', id))
+}
+
+// Reactions - generic function for gratitudes and sticky notes
+export const toggleReaction = async (collection, itemId, userId, emoji) => {
+  const docRef = doc(db, collection, itemId)
+  const docSnap = await getDoc(docRef)
+  
+  if (!docSnap.exists()) return
+  
+  const data = docSnap.data()
+  const reactions = data.reactions || {}
+  
+  // If user already reacted with this emoji, remove it
+  if (reactions[userId] === emoji) {
+    const newReactions = { ...reactions }
+    delete newReactions[userId]
+    await updateDoc(docRef, { reactions: newReactions })
+  } else {
+    // Add or update user's reaction
+    await updateDoc(docRef, {
+      [`reactions.${userId}`]: emoji
+    })
+  }
 }

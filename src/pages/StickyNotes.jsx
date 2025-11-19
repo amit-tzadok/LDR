@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, StickyNote, Heart } from 'lucide-react'
-import { subscribeStickyNotes, addStickyNote, deleteStickyNote, getAllUserProfiles } from '../services/firebase'
+import { Plus, Trash2, StickyNote, Heart, Smile } from 'lucide-react'
+import { subscribeStickyNotes, addStickyNote, deleteStickyNote, getAllUserProfiles, toggleReaction } from '../services/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { useCouple } from '../contexts/CoupleContext'
 
@@ -21,6 +21,9 @@ export default function StickyNotes() {
   const [newNote, setNewNote] = useState('')
   const [selectedColor, setSelectedColor] = useState(noteColors[0])
   const [userProfiles, setUserProfiles] = useState({})
+  const [showReactionPicker, setShowReactionPicker] = useState(null)
+
+  const reactionEmojis = ['❤️', '🥰', '😳', '😂', '😛', '🥳', '🍅']
 
   useEffect(() => {
     if (!coupleCode) return
@@ -54,6 +57,19 @@ export default function StickyNotes() {
     if (window.confirm('Delete this note?')) {
       await deleteStickyNote(id)
     }
+  }
+
+  const handleReaction = async (noteId, emoji) => {
+    await toggleReaction('stickyNotes', noteId, currentUser.uid, emoji)
+    setShowReactionPicker(null)
+  }
+
+  const getReactionCounts = (reactions = {}) => {
+    const counts = {}
+    Object.values(reactions).forEach(emoji => {
+      counts[emoji] = (counts[emoji] || 0) + 1
+    })
+    return counts
   }
 
   const getAuthorName = (note) => {
@@ -160,13 +176,13 @@ export default function StickyNotes() {
                   <Trash2 className="w-4 h-4" />
                 </button>
                 
-                <div className="pr-6">
+                <div className="pr-6 pl-2 pt-2">
                   <p className="text-sm leading-relaxed mb-3 whitespace-pre-wrap break-words text-black dark:text-gray-900">
                     {note.message}
                   </p>
                 </div>
                 
-                <div className="absolute bottom-3 left-4 right-4">
+                <div className="absolute bottom-3 left-4 right-16">
                   <p className="text-xs opacity-80 italic flex items-center gap-1 text-black dark:text-gray-900 font-medium">
                     <Heart className="w-3 h-3" />
                     {getAuthorName(note)}
@@ -179,6 +195,52 @@ export default function StickyNotes() {
                       minute: '2-digit'
                     })}
                   </p>
+                </div>
+                
+                {/* Reactions and Add Button - Bottom Right Corner */}
+                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                  {/* Reaction Counts */}
+                  {Object.keys(getReactionCounts(note.reactions)).length > 0 && (
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {Object.entries(getReactionCounts(note.reactions)).map(([emoji, count]) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReaction(note.id, emoji)}
+                          className={`text-xs px-2 py-1 rounded-full border transition-all ${
+                            note.reactions?.[currentUser.uid] === emoji
+                              ? 'bg-white/70 dark:bg-gray-900/70 border-gray-800 dark:border-gray-900 scale-110 font-semibold'
+                              : 'bg-white/40 dark:bg-gray-900/40 border-gray-500 dark:border-gray-700 hover:scale-105'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Add Reaction Button */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowReactionPicker(showReactionPicker === note.id ? null : note.id)}
+                      className="bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 border-2 border-gray-700 dark:border-gray-900 rounded-full p-1.5 transition-all hover:scale-110 shadow-md"
+                      title="Add reaction"
+                    >
+                      <Smile className="w-4 h-4 text-gray-700 dark:text-gray-900" />
+                    </button>
+                    {showReactionPicker === note.id && (
+                      <div className="absolute bottom-full right-0 mb-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border-2 border-gray-800 dark:border-gray-700 p-2 flex gap-1.5 z-10">
+                        {reactionEmojis.map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => handleReaction(note.id, emoji)}
+                            className="text-lg hover:scale-125 transition-transform p-1"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )
