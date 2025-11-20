@@ -10,9 +10,145 @@ import {
   orderBy,
   serverTimestamp,
   getDoc,
-  setDoc
+  setDoc,
+  getDocs
 } from 'firebase/firestore'
 import { db } from '../firebase'
+
+// Couples Management
+export const createCouple = async (userId, userEmail) => {
+  const coupleCode = Math.random().toString(36).substring(2, 10).toUpperCase()
+  const pairInviteCode = Math.random().toString(36).substring(2, 15).toLowerCase()
+  const trioInviteCode = Math.random().toString(36).substring(2, 15).toLowerCase()
+  
+  const coupleData = {
+    code: coupleCode, // For backwards compatibility with old system
+    coupleCode,
+    inviteCode: pairInviteCode, // Keep old field for backwards compatibility
+    pairInviteCode, // For joining as 2nd member
+    trioInviteCode, // For joining as 3rd member
+    members: [userId],
+    createdAt: serverTimestamp(),
+    createdBy: userId
+  }
+  
+  await setDoc(doc(db, 'couples', coupleCode), coupleData)
+  
+  // Get current user profile to preserve existing couples
+  const userRef = doc(db, 'userProfiles', userId)
+  const userDoc = await getDoc(userRef)
+  const currentCouples = userDoc.exists() ? (userDoc.data().couples || []) : []
+  
+  // Add to couples array and set as active
+  await updateUserProfile(userId, { 
+    coupleCode, // Keep for backwards compatibility
+    couples: [...currentCouples, coupleCode],
+    activeCoupleCode: coupleCode
+  })
+  
+  return { coupleCode, pairInviteCode, trioInviteCode }
+}
+
+export const joinCouple = async (inviteCode, userId) => {
+  console.log('joinCouple called with:', { inviteCode, userId })
+  
+  // Find couple by invite code (case-insensitive) - check both pairInviteCode and trioInviteCode
+  const couplesRef = collection(db, 'couples')
+  const normalizedCode = inviteCode.toLowerCase()
+  
+  // Search for couples with matching pairInviteCode or trioInviteCode
+  const allCouplesSnapshot = await getDocs(couplesRef)
+  let coupleDoc = null
+  let inviteType = null
+  
+  for (const doc of allCouplesSnapshot.docs) {
+    const data = doc.data()
+    if (data.pairInviteCode === normalizedCode || data.inviteCode === normalizedCode) {
+      coupleDoc = doc
+      inviteType = 'pair'
+      break
+    } else if (data.trioInviteCode === normalizedCode) {
+      coupleDoc = doc
+      inviteType = 'trio'
+      break
+    }
+  }
+  
+  if (!coupleDoc) {
+    throw new Error(`Invalid invite code "${inviteCode}" - no couple found with this code. Please double-check the code and try again.`)
+  }
+  
+  const coupleData = coupleDoc.data()
+  const coupleCode = coupleDoc.id
+  const currentMemberCount = coupleData.members?.length || 0
+  
+  console.log('Found couple:', { coupleCode, members: coupleData.members, inviteType, currentMemberCount })
+  
+  // Check if already a member
+  if (coupleData.members.includes(userId)) {
+    throw new Error('You are already a member of this space')
+  }
+  
+  // Enforce 3-member limit
+  if (currentMemberCount >= 3) {
+    throw new Error('This space already has the maximum of 3 members')
+  }
+  
+  // Validate invite code type matches current member count
+  if (inviteType === 'pair' && currentMemberCount !== 1) {
+    throw new Error('This invite code is for joining as a pair (2 people total). This space already has ' + currentMemberCount + ' member(s).')
+  }
+  
+  if (inviteType === 'trio' && currentMemberCount !== 2) {
+    throw new Error('This invite code is for joining as a third person. This space needs exactly 2 existing members, but has ' + currentMemberCount + '.')
+  }
+  
+  // Add user to couple
+  await updateDoc(doc(db, 'couples', coupleCode), {
+    members: [...coupleData.members, userId]
+  })
+  
+  console.log('Updated couple members')
+  
+  // Get current user profile to preserve existing couples
+  const userRef = doc(db, 'userProfiles', userId)
+  const userDoc = await getDoc(userRef)
+  const currentCouples = userDoc.exists() ? (userDoc.data().couples || []) : []
+  
+  // Add to couples array if not already there
+  const updatedCouples = currentCouples.includes(coupleCode) 
+    ? currentCouples 
+    : [...currentCouples, coupleCode]
+  
+  // Update user profile with couples array and set as active
+  await updateUserProfile(userId, { 
+    coupleCode, // Keep for backwards compatibility
+    couples: updatedCouples,
+    activeCoupleCode: coupleCode
+  })
+  
+  console.log('Updated user profile - added to couples:', coupleCode)
+  
+  return coupleCode
+}
+
+export const getCouple = async (coupleCode) => {
+  const coupleRef = doc(db, 'couples', coupleCode)
+  const coupleDoc = await getDoc(coupleRef)
+  return coupleDoc.exists() ? { id: coupleDoc.id, ...coupleDoc.data() } : null
+}
+
+export const subscribeCouple = (coupleCode, callback) => {
+  if (!coupleCode) return () => {}
+  const coupleRef = doc(db, 'couples', coupleCode)
+  return onSnapshot(coupleRef, (doc) => {
+    if (doc.exists()) {
+      callback({ id: doc.id, ...doc.data() })
+    } else {
+      callback(null)
+    }
+  })
+}
 
 // Settings - couple-specific
 export const getSettings = (coupleCode, callback) => {
@@ -283,14 +419,58 @@ export const updateUserProfile = async (userId, updates) => {
 
 export const getAllUserProfiles = (coupleCode, callback) => {
   if (!coupleCode) return () => {}
-  const q = query(collection(db, 'userProfiles'), where('coupleCode', '==', coupleCode))
-  return onSnapshot(q, (snapshot) => {
+  
+  // Get the couple first to find all member IDs, then subscribe to each profile
+  const coupleRef = doc(db, 'couples', coupleCode)
+  let profileUnsubscribers = []
+  
+  const unsubscribeCouple = onSnapshot(coupleRef, (coupleDoc) => {
+    // Unsubscribe from old profile listeners
+    profileUnsubscribers.forEach(unsub => unsub())
+    profileUnsubscribers = []
+    
+    if (!coupleDoc.exists()) {
+      callback({})
+      return
+    }
+    
+    const memberIds = coupleDoc.data().members || []
+    if (memberIds.length === 0) {
+      callback({})
+      return
+    }
+    
+    // Subscribe to all member profiles
     const profiles = {}
-    snapshot.docs.forEach(doc => {
-      profiles[doc.id] = doc.data()
+    let loadedCount = 0
+    
+    memberIds.forEach(memberId => {
+      const userRef = doc(db, 'userProfiles', memberId)
+      const unsub = onSnapshot(userRef, (userDoc) => {
+        if (userDoc.exists()) {
+          profiles[memberId] = userDoc.data()
+        }
+        loadedCount++
+        // Call callback once all profiles are loaded
+        if (loadedCount >= memberIds.length) {
+          callback({ ...profiles })
+        }
+      }, (err) => {
+        console.error('Error subscribing to user profile:', memberId, err)
+        loadedCount++
+        if (loadedCount >= memberIds.length) {
+          callback({ ...profiles })
+        }
+      })
+      profileUnsubscribers.push(unsub)
     })
-    callback(profiles)
   })
+  
+  // Return cleanup function
+  return () => {
+    unsubscribeCouple()
+    profileUnsubscribers.forEach(unsub => unsub())
+  }
 }
 
 // Sticky Notes

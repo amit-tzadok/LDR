@@ -1,0 +1,125 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data;
+    }
+
+    function isInCouple(coupleCode) {
+      let profile = getUserProfile();
+      // Support both old single coupleCode and new couples array
+      return isSignedIn() && (
+        profile.coupleCode == coupleCode ||
+        (profile.couples != null && profile.couples.hasAny([coupleCode]))
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Couples collection
+    match /couples/{coupleId} {
+      // Allow read for signed-in users (needed to search by inviteCode when joining)
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      // Allow update if user is a member or being added to members
+      allow update: if isSignedIn() && (
+        isInCouple(coupleId) ||
+        request.resource.data.members.hasAny([request.auth.uid])
+      );
+      // Prevent client-side deletion - should be handled by Cloud Functions
+      allow delete: if false;
+    }
+
+    // User profiles - users can read their own and their partner's profile
+    match /userProfiles/{userId} {
+      allow read: if isSignedIn() && (
+        isOwner(userId) || 
+        (getUserProfile().coupleCode != null && getUserProfile().coupleCode == resource.data.coupleCode)
+      );
+      allow create: if isSignedIn() && isOwner(userId);
+      // Users can only update their own profile
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    // Settings - couple members only
+    match /settings/{coupleCode} {
+      allow read, write: if isInCouple(coupleCode);
+    }
+
+    // Date Ideas
+    match /dateIdeas/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Books
+    match /books/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Book Discussions
+    match /bookDiscussions/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && isOwner(resource.data.createdBy);
+    }
+
+    // Shows
+    match /shows/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Future Trips
+    match /futureTrips/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Dream Trips
+    match /dreamTrips/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Special Dates
+    match /specialDates/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Gratitudes
+    match /gratitudes/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Milestones
+    match /milestones/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Daily Habits
+    match /dailyHabits/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+
+    // Sticky Notes
+    match /stickyNotes/{docId} {
+      allow read, write: if isSignedIn() && isInCouple(resource.data.coupleCode);
+      allow create: if isSignedIn() && isInCouple(request.resource.data.coupleCode);
+    }
+  }
+}

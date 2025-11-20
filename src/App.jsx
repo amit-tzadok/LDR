@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from './contexts/AuthContext'
+import { useCouple } from './contexts/CoupleContext'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import DateIdeas from './pages/DateIdeas'
@@ -17,6 +18,7 @@ import DailyHabits from './pages/DailyHabits'
 import Profile from './pages/Profile'
 import More from './pages/More'
 import StickyNotes from './pages/StickyNotes'
+import SpaceSettings from './pages/SpaceSettings'
 import Layout from './components/Layout'
 
 const pageVariants = {
@@ -44,11 +46,31 @@ function AnimatedPage({ children }) {
   )
 }
 
+function ProtectedRoute({ children }) {
+  const { hasCouple, loading } = useCouple()
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-green-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="text-2xl text-pink-500 animate-pulse">Loading...</div>
+      </div>
+    )
+  }
+  
+  // If user doesn't have a couple, redirect to invite page
+  if (!hasCouple) {
+    return <Navigate to="/invite" replace />
+  }
+  
+  return children
+}
+
 function App() {
   const { currentUser, loading } = useAuth()
+  const { hasCouple, loading: coupleLoading, coupleCode } = useCouple()
   const location = useLocation()
 
-  if (loading) {
+  if (loading || coupleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-green-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="text-2xl text-pink-500 animate-pulse">Loading...</div>
@@ -60,8 +82,8 @@ function App() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/" />} />
-        <Route path="/" element={currentUser ? <Layout /> : <Navigate to="/login" />}>
-          <Route index element={<AnimatedPage><Home /></AnimatedPage>} />
+        <Route path="/" element={currentUser ? <Layout /> : <Navigate to={`/login${location.search}`} />}>
+          <Route index element={hasCouple ? <AnimatedPage><Home /></AnimatedPage> : <Navigate to="/invite" replace />} />
           <Route path="date-ideas" element={<AnimatedPage><DateIdeas /></AnimatedPage>} />
           <Route path="date-ideas-by-location" element={<AnimatedPage><DateIdeasByLocation /></AnimatedPage>} />
           <Route path="books" element={<AnimatedPage><Books /></AnimatedPage>} />
@@ -75,6 +97,7 @@ function App() {
           <Route path="daily-habits" element={<AnimatedPage><DailyHabits /></AnimatedPage>} />
           <Route path="sticky-notes" element={<AnimatedPage><StickyNotes /></AnimatedPage>} />
           <Route path="profile" element={<AnimatedPage><Profile /></AnimatedPage>} />
+          <Route path="space-settings" element={<AnimatedPage><SpaceSettings /></AnimatedPage>} />
           <Route path="more" element={<AnimatedPage><More /></AnimatedPage>} />
         </Route>
       </Routes>

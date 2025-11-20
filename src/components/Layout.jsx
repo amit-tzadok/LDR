@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { subscribeUserProfile } from '../services/firebase'
 import { Home, Heart, CheckCircle2, Award, MoreHorizontal, LogOut, Moon, Sun, Settings } from 'lucide-react'
+import CoupleSwitcher from './CoupleSwitcher'
 
 export default function Layout() {
   const { signOut, currentUser } = useAuth()
@@ -36,7 +37,7 @@ export default function Layout() {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/daily-habits', icon: CheckCircle2, label: 'Daily' },
-    { path: '/milestones', icon: Award, label: 'Journey' },
+    { path: '/date-ideas', icon: Heart, label: 'Date Ideas' },
     { path: '/gratitude', icon: Heart, label: 'Gratitude' },
     { path: '/more', icon: MoreHorizontal, label: 'More' },
   ]
@@ -55,7 +56,8 @@ export default function Layout() {
               </p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <CoupleSwitcher />
             <button
               onClick={toggleTheme}
               className="p-2 rounded-full hover:bg-pink-50 dark:hover:bg-gray-700 transition-colors"

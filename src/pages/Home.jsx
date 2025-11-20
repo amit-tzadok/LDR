@@ -19,6 +19,7 @@ export default function Home() {
   const [newDate, setNewDate] = useState('')
   const [saveMessage, setSaveMessage] = useState('')
   const [stickyNotes, setStickyNotes] = useState([])
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const [showNoteForm, setShowNoteForm] = useState(false)
   const [newNote, setNewNote] = useState('')
   const [selectedColor, setSelectedColor] = useState(noteColors[0])
@@ -26,6 +27,17 @@ export default function Home() {
   const navigate = useNavigate()
   const { coupleCode } = useCouple()
   const { currentUser } = useAuth()
+
+  // Check if this is a new user without a couple and show welcome modal
+  useEffect(() => {
+    if (!coupleCode && currentUser) {
+      const hasSeenWelcome = sessionStorage.getItem(`hasSeenWelcome_${currentUser.uid}`)
+      if (!hasSeenWelcome) {
+        setShowWelcomeModal(true)
+        sessionStorage.setItem(`hasSeenWelcome_${currentUser.uid}`, 'true')
+      }
+    }
+  }, [coupleCode, currentUser])
 
   useEffect(() => {
     if (!coupleCode) return
@@ -483,6 +495,45 @@ export default function Home() {
 
 
       </div>
+
+      {/* Welcome Modal for New Users */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="flex justify-center mb-4">
+                <Heart className="w-16 h-16 text-pink-400 fill-pink-400 animate-pulse" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                Welcome! 👋
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Ready to create your shared space? Let's get you connected with your partner or friend!
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <button
+                onClick={() => {
+                  setShowWelcomeModal(false)
+                  navigate('/invite')
+                }}
+                className="btn-primary w-full inline-flex items-center justify-center gap-2 py-4"
+              >
+                <UserPlus className="w-5 h-5" />
+                Set Up Your Space
+              </button>
+              
+              <button
+                onClick={() => setShowWelcomeModal(false)}
+                className="btn-secondary w-full py-4"
+              >
+                I'll do this later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

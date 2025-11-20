@@ -13,6 +13,13 @@ export default function More() {
       description: 'Update your name and settings'
     },
     { 
+      title: 'Space Settings', 
+      icon: Settings, 
+      path: '/space-settings',
+      gradient: 'from-purple-400 to-indigo-500',
+      description: 'Manage your shared space'
+    },
+    { 
       title: 'Sticky Notes', 
       icon: StickyNote, 
       path: '/sticky-notes',

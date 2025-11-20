@@ -6,6 +6,7 @@ import {
   signOut as firebaseSignOut
 } from 'firebase/auth'
 import { auth } from '../firebase'
+import { createUserProfile } from '../services/firebase'
 
 const AuthContext = createContext()
 
@@ -30,8 +31,19 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password)
   }
 
-  const signUp = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password)
+  const signUp = async (email, password, name = '') => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    
+    // Create user profile immediately after signup
+    await createUserProfile(userCredential.user.uid, {
+      uid: userCredential.user.uid,
+      email: userCredential.user.email,
+      name: name || '',
+      coupleCode: null,
+      createdAt: new Date()
+    })
+    
+    return userCredential
   }
 
   const signOut = () => {
