@@ -2,6 +2,11 @@
   "name": "our-space",
   "private": true,
   "version": "0.0.0",
+  "homepage": "https://ldr-app-923ac.web.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amit-tzadok/LDR.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

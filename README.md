@@ -1,6 +1,8 @@
-# LDR - Long Distance Relationship Companion App 
+# Our Space
 
-A mobile-responsive web app for long-distance couples to save, plan, and organize everything they want to experience together.
+[![Live Site](https://img.shields.io/badge/live-ldr--app-00c853?style=for-the-badge&logo=google-chrome)](https://ldr-app-923ac.web.app) [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/amit-tzadok/LDR)
+
+Our Space is a mobile-responsive web app for couples (and close friends) to share ideas, plan dates and trips, and keep memories in one place.
 
 ## Features ✨
 
