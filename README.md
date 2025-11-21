@@ -110,7 +110,6 @@ Our Space is a mobile-responsive web app for couples (and close friends) to shar
 ├── package.json
 ├── vite.config.js
 └── README.md
-```
 
 ## Deployment 🌐
 ### Deploy to Firebase Hosting
