@@ -17,37 +17,23 @@ A mobile-responsive web app for long-distance couples to save, plan, and organiz
 ## Tech Stack 🛠️
 
 - **Frontend**: React 19 + Vite
+# Our Space
+
+> Our Space is a small app for couples and close friends to share ideas, plan dates and trips, and keep memories in one place.
+
 - **Styling**: TailwindCSS with custom romantic theme
 - **Routing**: React Router v6
-- **Backend**: Firebase (Firestore + Authentication)
-- **Icons**: Lucide React
-
-## Getting Started 🚀
-
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- npm or yarn
-- Firebase account
-
-### Installation
-
-1. Clone the repository:
    ```bash
    git clone <your-repo-url>
    cd LDR
-   ```
-
-2. Install dependencies:
-   ```bash
    npm install
-   ```
 
 3. Set up Firebase:
    - Go to [Firebase Console](https://console.firebase.google.com/)
    - Create a new project
-   - Enable Firestore Database
-   - Enable Authentication (Email/Password)
    - Get your Firebase config from Project Settings
 
 4. Update Firebase configuration:
@@ -64,7 +50,6 @@ A mobile-responsive web app for long-distance couples to save, plan, and organiz
    }
    ```
 
-5. Set up Firestore Rules (in Firebase Console):
    ```
    rules_version = '2';
    service cloud.firestore {
@@ -74,16 +59,13 @@ A mobile-responsive web app for long-distance couples to save, plan, and organiz
        }
      }
    }
-   ```
 
 6. Start the development server:
    ```bash
    npm run dev
    ```
-
 7. Open your browser and navigate to `http://localhost:5173`
 
-### First Time Setup
 
 1. Create an account using the Sign Up form
 2. Have your partner create an account with the same credentials or their own
@@ -102,23 +84,14 @@ A mobile-responsive web app for long-distance couples to save, plan, and organiz
 - Fill in the form and submit
 - Items appear instantly for both partners
 
-### Editing & Deleting
 - Click the edit icon to modify any item
 - Click the trash icon to delete (with confirmation)
 - Click the checkmark on date ideas to mark them as complete
-
-### Filtering
-- Use category filters on Date Ideas, Books, and Shows pages
 - Toggle "Show completed ideas" to hide/show finished date ideas
-- Filter trips by priority level
 
 ## Project Structure 📁
 
-```
-LDR/
-├── src/
 │   ├── components/
-│   │   └── Layout.jsx          # Main layout with navigation
 │   ├── contexts/
 │   │   └── AuthContext.jsx     # Authentication context
 │   ├── pages/
@@ -129,30 +102,23 @@ LDR/
 │   │   ├── Books.jsx
 │   │   ├── Shows.jsx
 │   │   ├── FutureTrips.jsx
-│   │   └── DreamTrips.jsx
 │   ├── services/
 │   │   └── firebase.js         # Firebase service functions
 │   ├── App.jsx                 # Main app with routing
-│   ├── firebase.js             # Firebase configuration
-│   ├── index.css               # Tailwind + custom styles
-│   └── main.jsx                # App entry point
-├── index.html
 ├── package.json
-├── tailwind.config.js
 ├── vite.config.js
 └── README.md
 ```
 
 ## Deployment 🌐
-
 ### Deploy to Firebase Hosting
 
 1. Install Firebase CLI:
    ```bash
    npm install -g firebase-tools
-   ```
 
 2. Login to Firebase:
+
    ```bash
    firebase login
    ```
