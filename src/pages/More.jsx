@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { MapPin, BookOpen, Tv, Plane, Sparkles, UserPlus, User, Settings, StickyNote } from 'lucide-react'
+import { MapPin, BookOpen, Tv, Plane, Sparkles, UserPlus, User, Settings, StickyNote, RefreshCw } from 'lucide-react'
 
 export default function More() {
   const navigate = useNavigate()
@@ -18,6 +18,13 @@ export default function More() {
       path: '/space-settings',
       gradient: 'from-purple-400 to-indigo-500',
       description: 'Manage your shared space'
+    },
+    { 
+      title: 'Recover Space', 
+      icon: RefreshCw, 
+      path: '/recover-space',
+      gradient: 'from-orange-400 to-red-500',
+      description: 'Restore accidentally removed spaces'
     },
     { 
       title: 'Sticky Notes', 

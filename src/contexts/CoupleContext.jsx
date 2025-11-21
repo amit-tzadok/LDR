@@ -131,9 +131,13 @@ export function CoupleProvider({ children }) {
   }, [currentUser])
 
   // Cleanup effect: Remove references to couples that no longer exist or user is not a member of
+  // Only run once on mount to avoid aggressive cleanup
   useEffect(() => {
+    let hasRun = false
+    
     const cleanupInvalidCouples = async () => {
-      if (!currentUser || coupleCodes.length === 0) return
+      if (!currentUser || coupleCodes.length === 0 || hasRun) return
+      hasRun = true
       
       const { doc, getDoc } = await import('firebase/firestore')
       const { db } = await import('../firebase')
@@ -154,6 +158,8 @@ export function CoupleProvider({ children }) {
           }
         } catch (err) {
           console.error('Error checking couple:', code, err)
+          // If there's an error, keep the couple (don't remove it)
+          validCouples.push(code)
         }
       }
       
@@ -174,8 +180,13 @@ export function CoupleProvider({ children }) {
       }
     }
     
-    cleanupInvalidCouples()
-  }, [currentUser, coupleCodes])
+    // Add delay to ensure data is loaded first
+    const timeout = setTimeout(() => {
+      cleanupInvalidCouples()
+    }, 2000)
+    
+    return () => clearTimeout(timeout)
+  }, [currentUser])
 
   const value = {
     coupleCode, // Active couple code

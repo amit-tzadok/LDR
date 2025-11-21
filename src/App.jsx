@@ -19,6 +19,7 @@ import Profile from './pages/Profile'
 import More from './pages/More'
 import StickyNotes from './pages/StickyNotes'
 import SpaceSettings from './pages/SpaceSettings'
+import RecoverSpace from './pages/RecoverSpace'
 import Layout from './components/Layout'
 
 const pageVariants = {
@@ -98,6 +99,7 @@ function App() {
           <Route path="sticky-notes" element={<AnimatedPage><StickyNotes /></AnimatedPage>} />
           <Route path="profile" element={<AnimatedPage><Profile /></AnimatedPage>} />
           <Route path="space-settings" element={<AnimatedPage><SpaceSettings /></AnimatedPage>} />
+          <Route path="recover-space" element={<AnimatedPage><RecoverSpace /></AnimatedPage>} />
           <Route path="more" element={<AnimatedPage><More /></AnimatedPage>} />
         </Route>
       </Routes>
