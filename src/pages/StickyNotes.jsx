@@ -202,7 +202,7 @@ export default function StickyNotes() {
                   {/* Reaction Counts */}
                   {Object.keys(getReactionCounts(note.reactions)).length > 0 && (
                     <div className="flex items-center gap-1 flex-wrap">
-                      {Object.entries(getReactionCounts(note.reactions)).map(([emoji, count]) => (
+                      {Object.entries(getReactionCounts(note.reactions)).map(([emoji]) => (
                         <button
                           key={emoji}
                           onClick={() => handleReaction(note.id, emoji)}

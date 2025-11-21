@@ -33,8 +33,11 @@ export default function Home() {
     if (!coupleCode && currentUser) {
       const hasSeenWelcome = sessionStorage.getItem(`hasSeenWelcome_${currentUser.uid}`)
       if (!hasSeenWelcome) {
-        setShowWelcomeModal(true)
-        sessionStorage.setItem(`hasSeenWelcome_${currentUser.uid}`, 'true')
+        // Avoid synchronous setState in effect to prevent cascading renders
+        setTimeout(() => {
+          setShowWelcomeModal(true)
+          sessionStorage.setItem(`hasSeenWelcome_${currentUser.uid}`, 'true')
+        }, 0)
       }
     }
   }, [coupleCode, currentUser])
@@ -155,70 +158,70 @@ export default function Home() {
   const navCards = [
     { 
       title: 'Date Ideas', 
-      icon: Heart, 
+      icon: <Heart className="w-6 h-6 text-white" />, 
       path: '/date-ideas',
       gradient: 'from-pink-300 to-pink-400',
       description: 'Things we want to do together'
     },
     { 
       title: 'Books', 
-      icon: BookOpen, 
+      icon: <BookOpen className="w-6 h-6 text-white" />, 
       path: '/books',
       gradient: 'from-pink-200 to-green-300',
       description: 'Books to read together'
     },
     { 
       title: 'Shows & Movies', 
-      icon: Tv, 
+      icon: <Tv className="w-6 h-6 text-white" />, 
       path: '/shows',
       gradient: 'from-green-300 to-green-400',
       description: 'Shows and movies to watch together'
     },
     { 
       title: 'Future Trips', 
-      icon: Plane, 
+      icon: <Plane className="w-6 h-6 text-white" />, 
       path: '/future-trips',
       gradient: 'from-pink-300 to-green-300',
       description: 'Trips we are planning'
     },
     { 
       title: 'Dream Trips', 
-      icon: Sparkles, 
+      icon: <Sparkles className="w-6 h-6 text-white" />, 
       path: '/dream-trips',
       gradient: 'from-green-200 to-pink-300',
       description: 'Our bucket list destinations'
     },
     { 
       title: 'Special Dates', 
-      icon: Calendar, 
+      icon: <Calendar className="w-6 h-6 text-white" />, 
       path: '/special-dates',
       gradient: 'from-green-300 to-pink-300',
       description: 'Our calendar of special moments'
     },
     { 
       title: 'Gratitude Wall', 
-      icon: Sparkles, 
+      icon: <Sparkles className="w-6 h-6 text-white" />, 
       path: '/gratitude',
       gradient: 'from-yellow-300 to-pink-400',
       description: 'Things we appreciate'
     },
     { 
       title: 'Milestones', 
-      icon: Award, 
+      icon: <Award className="w-6 h-6 text-white" />, 
       path: '/milestones',
       gradient: 'from-purple-300 to-pink-400',
       description: 'Track our journey together'
     },
     { 
       title: 'Daily Habits', 
-      icon: CheckCircle2, 
+      icon: <CheckCircle2 className="w-6 h-6 text-white" />, 
       path: '/daily-habits',
       gradient: 'from-green-300 to-emerald-400',
       description: 'Build habits together'
     },
     { 
       title: 'Sticky Notes', 
-      icon: StickyNote, 
+      icon: <StickyNote className="w-6 h-6 text-white" />, 
       path: '/sticky-notes',
       gradient: 'from-yellow-200 to-orange-300',
       description: 'Quick notes for your partner'
@@ -408,14 +411,14 @@ export default function Home() {
             Our Relationship
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Milestones', 'Special Dates'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Milestones', 'Special Dates'].includes(card.title)).map(({ title, icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}
                 className="nav-card text-left group"
               >
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-6 h-6 text-white" />
+                  {icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{title}</h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">{description}</p>
@@ -431,14 +434,14 @@ export default function Home() {
             Daily Connection
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Daily Habits', 'Gratitude Wall', 'Sticky Notes'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Daily Habits', 'Gratitude Wall', 'Sticky Notes'].includes(card.title)).map(({ title, icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}
                 className="nav-card text-left group"
               >
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-6 h-6 text-white" />
+                  {icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{title}</h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">{description}</p>
@@ -454,14 +457,14 @@ export default function Home() {
             Planning Together
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Date Ideas', 'Future Trips', 'Dream Trips'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Date Ideas', 'Future Trips', 'Dream Trips'].includes(card.title)).map(({ title, icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}
                 className="nav-card text-left group"
               >
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-6 h-6 text-white" />
+                  {icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{title}</h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">{description}</p>
@@ -477,14 +480,14 @@ export default function Home() {
             Shared Interests
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {navCards.filter(card => ['Books', 'Shows & Movies'].includes(card.title)).map(({ title, icon: Icon, path, gradient, description }) => (
+            {navCards.filter(card => ['Books', 'Shows & Movies'].includes(card.title)).map(({ title, icon, path, gradient, description }) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}
                 className="nav-card text-left group"
               >
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-6 h-6 text-white" />
+                  {icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{title}</h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">{description}</p>

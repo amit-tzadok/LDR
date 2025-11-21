@@ -15,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
-  const { refreshCoupleCode, hasCouple } = useCouple()
+  const { refreshCoupleCode } = useCouple()
   const navigate = useNavigate()
 
   // Check for invite code in URL on mount

@@ -143,7 +143,6 @@ export default function Gratitude() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {gratitudes.map((item, index) => {
             const colorClass = getRandomColor(index)
-            const borderClass = colorClass.split(' ').find(c => c.includes('border-'))
             
             return (
               <div
@@ -186,7 +185,7 @@ export default function Gratitude() {
                   {/* Reaction Counts */}
                   {Object.keys(getReactionCounts(item.reactions)).length > 0 && (
                     <div className="flex items-center gap-1 flex-wrap">
-                      {Object.entries(getReactionCounts(item.reactions)).map(([emoji, count]) => (
+                      {Object.entries(getReactionCounts(item.reactions)).map(([emoji]) => (
                         <button
                           key={emoji}
                           onClick={() => handleReaction(item.id, emoji)}

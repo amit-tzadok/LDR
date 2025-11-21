@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, BookOpen, Star, MessageCircle, Send } from 'lucide-react'
 import { subscribeBooks, addBook, updateBook, deleteBook, subscribeBookDiscussions, addBookDiscussion, deleteBookDiscussion, getAllUserProfiles } from '../services/firebase'
+import { getInitials } from '../utils/avatar'
 import { useCouple } from '../contexts/CoupleContext'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -345,17 +346,32 @@ export default function Books() {
                   <div key={discussion.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
-                          {getAuthorName(discussion.createdBy)}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {discussion.createdAt?.toDate ? new Date(discussion.createdAt.toDate()).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit'
-                          }) : 'Just now'}
-                        </span>
+                        {/* Avatar + name */}
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                          {userProfiles[discussion.createdBy]?.photoURL ? (
+                            <img src={userProfiles[discussion.createdBy].photoURL} alt={userProfiles[discussion.createdBy]?.name || 'avatar'} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-pink-600">
+                                  {(() => {
+                                    const initials = getInitials(userProfiles[discussion.createdBy] || { id: discussion.createdBy })
+                                    return initials || <div className="text-pink-500"><Star className="w-4 h-4" /></div>
+                                  })()}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
+                            {getAuthorName(discussion.createdBy)}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {discussion.createdAt?.toDate ? new Date(discussion.createdAt.toDate()).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            }) : 'Just now'}
+                          </div>
+                        </div>
                       </div>
                       {discussion.createdBy === currentUser.uid && (
                         <button

@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Import the functions you need from the SDKs you need
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');

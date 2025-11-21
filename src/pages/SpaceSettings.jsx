@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings, Edit2, LogOut, Users } from 'lucide-react'
+import { getInitials } from '../utils/avatar'
 import { useCouple } from '../contexts/CoupleContext'
-import { useAuth } from '../contexts/AuthContext'
-import { getCouple } from '../services/firebase'
+import { getCouple, getAllUserProfiles } from '../services/firebase'
 
 export default function SpaceSettings() {
   const [loading, setLoading] = useState(false)
@@ -11,8 +11,8 @@ export default function SpaceSettings() {
   const [customName, setCustomName] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
   const [memberCount, setMemberCount] = useState(1)
+  const [memberProfiles, setMemberProfiles] = useState({})
   const { coupleCode, leaveCouple } = useCouple()
-  const { currentUser } = useAuth()
   const navigate = useNavigate()
 
   // Load couple data
@@ -30,6 +30,14 @@ export default function SpaceSettings() {
     }
     
     loadCoupleData()
+  }, [coupleCode])
+
+  useEffect(() => {
+    if (!coupleCode) return
+    const unsubscribe = getAllUserProfiles(coupleCode, (profiles) => {
+      setMemberProfiles(profiles)
+    })
+    return unsubscribe
   }, [coupleCode])
 
   const handleSaveCustomName = async () => {
@@ -164,11 +172,28 @@ export default function SpaceSettings() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Space Info</h2>
         </div>
         <div className="space-y-3">
-          <div className="flex justify-between items-center py-2">
+          <div className="py-2">
             <span className="text-gray-700 dark:text-gray-300">Members</span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {memberCount} {memberCount === 1 ? 'member' : 'members'}
-            </span>
+            <div className="flex items-center gap-3 mt-2">
+              {Object.values(memberProfiles).length === 0 ? (
+                <div className="text-sm text-gray-500">{memberCount} {memberCount === 1 ? 'member' : 'members'}</div>
+              ) : (
+                Object.values(memberProfiles).map((p) => (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                      {p.photoURL ? (
+                        <img src={p.photoURL} alt={p.name || 'avatar'} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-pink-600 font-semibold text-xs">
+                          {getInitials(p) || <Users className="w-4 h-4 text-pink-500" />}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{p.name || p.email || 'Member'}</div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-700 dark:text-gray-300">Space Code</span>

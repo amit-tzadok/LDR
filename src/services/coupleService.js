@@ -3,10 +3,6 @@ import {
   getDoc, 
   setDoc, 
   updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
   serverTimestamp 
 } from 'firebase/firestore'
 import { db } from '../firebase'

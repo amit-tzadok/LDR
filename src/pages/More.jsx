@@ -7,56 +7,56 @@ export default function More() {
   const moreItems = [
     { 
       title: 'Profile', 
-      icon: User, 
+      icon: <User className="w-6 h-6 text-white" />, 
       path: '/profile',
       gradient: 'from-pink-400 to-pink-500',
       description: 'Update your name and settings'
     },
     { 
       title: 'Space Settings', 
-      icon: Settings, 
+      icon: <Settings className="w-6 h-6 text-white" />, 
       path: '/space-settings',
       gradient: 'from-purple-400 to-indigo-500',
       description: 'Manage your shared space'
     },
     { 
       title: 'Recover Space', 
-      icon: RefreshCw, 
+      icon: <RefreshCw className="w-6 h-6 text-white" />, 
       path: '/recover-space',
       gradient: 'from-orange-400 to-red-500',
       description: 'Restore accidentally removed spaces'
     },
     { 
       title: 'Sticky Notes', 
-      icon: StickyNote, 
+      icon: <StickyNote className="w-6 h-6 text-white" />, 
       path: '/sticky-notes',
       gradient: 'from-yellow-300 to-orange-400',
       description: 'Quick notes for your partner'
     },
     { 
       title: 'Books', 
-      icon: BookOpen, 
+      icon: <BookOpen className="w-6 h-6 text-white" />, 
       path: '/books',
       gradient: 'from-pink-200 to-green-300',
       description: 'Books to read together'
     },
     { 
       title: 'Shows & Movies', 
-      icon: Tv, 
+      icon: <Tv className="w-6 h-6 text-white" />, 
       path: '/shows',
       gradient: 'from-green-300 to-green-400',
       description: 'Shows and movies to watch together'
     },
     { 
       title: 'Gratitude Wall', 
-      icon: Sparkles, 
+      icon: <Sparkles className="w-6 h-6 text-white" />, 
       path: '/gratitude',
       gradient: 'from-yellow-300 to-pink-400',
       description: 'Things we appreciate'
     },
     { 
       title: 'Invite Partner', 
-      icon: UserPlus, 
+      icon: <UserPlus className="w-6 h-6 text-white" />, 
       path: '/invite',
       gradient: 'from-pink-300 to-pink-400',
       description: 'Share this app'
@@ -74,14 +74,14 @@ export default function More() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {moreItems.map(({ title, icon: Icon, path, gradient, description }) => (
+        {moreItems.map(({ title, icon, path, gradient, description }) => (
           <button
             key={path}
             onClick={() => navigate(path)}
             className="nav-card text-left group"
           >
             <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-              <Icon className="w-6 h-6 text-white" />
+              {icon}
             </div>
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{title}</h3>
             <p className="text-gray-600 dark:text-gray-300 text-sm">{description}</p>

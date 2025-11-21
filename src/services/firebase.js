@@ -14,6 +14,8 @@ import {
   getDocs
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { storage } from '../firebase'
+import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 
 // Couples Management
 export const createCouple = async (userId, userEmail) => {
@@ -28,10 +30,33 @@ export const createCouple = async (userId, userEmail) => {
     pairInviteCode, // For joining as 2nd member
     trioInviteCode, // For joining as 3rd member
     members: [userId],
+    // membersMeta stores minimal public metadata for members to avoid cross-profile reads
+    membersMeta: {},
     createdAt: serverTimestamp(),
     createdBy: userId
   }
   
+  // Try to seed membersMeta with existing user profile data
+  try {
+    const userRef = doc(db, 'userProfiles', userId)
+    const userDoc = await getDoc(userRef)
+    if (userDoc.exists()) {
+      const ud = userDoc.data()
+      coupleData.membersMeta[userId] = {
+        id: userId,
+        name: ud.name || null,
+        email: ud.email || userEmail || null,
+        photoURL: ud.photoURL || null
+      }
+    } else {
+      coupleData.membersMeta[userId] = { id: userId, email: userEmail || null }
+    }
+  } catch (err) {
+    // If reading profile fails, still create couple with minimal meta
+    console.debug('createCouple: failed to read user profile', err)
+    coupleData.membersMeta[userId] = { id: userId, email: userEmail || null }
+  }
+
   await setDoc(doc(db, 'couples', coupleCode), coupleData)
   
   // Get current user profile to preserve existing couples
@@ -103,10 +128,25 @@ export const joinCouple = async (inviteCode, userId) => {
     throw new Error('This invite code is for joining as a third person. This space needs exactly 2 existing members, but has ' + currentMemberCount + '.')
   }
   
-  // Add user to couple
+  // Add user to couple members array
   await updateDoc(doc(db, 'couples', coupleCode), {
     members: [...coupleData.members, userId]
   })
+
+  // Also add minimal membersMeta entry to the couple document (merge)
+  try {
+    const userRef = doc(db, 'userProfiles', userId)
+    const userDoc = await getDoc(userRef)
+    const meta = userDoc.exists()
+      ? { id: userId, name: userDoc.data().name || null, email: userDoc.data().email || null, photoURL: userDoc.data().photoURL || null }
+      : { id: userId }
+    await updateDoc(doc(db, 'couples', coupleCode), {
+      [`membersMeta.${userId}`]: meta
+    })
+  } catch (err) {
+    // Non-fatal - if profile read fails, skip adding meta
+    console.debug('Could not add membersMeta for user:', userId, err)
+  }
   
   console.log('Updated couple members')
   
@@ -417,6 +457,110 @@ export const updateUserProfile = async (userId, updates) => {
   }, { merge: true })
 }
 
+// Avatar upload & management
+export const uploadUserAvatar = (file, userId, onProgress) => {
+  return new Promise((resolve, reject) => {
+    if (!file) return reject(new Error('No file provided'))
+    const filename = `${Date.now()}_${file.name}`
+    const path = `avatars/${userId}/${filename}`
+    const ref = storageRef(storage, path)
+    const uploadTask = uploadBytesResumable(ref, file)
+
+    uploadTask.on('state_changed', (snapshot) => {
+      if (onProgress && typeof onProgress === 'function') {
+        const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+        onProgress(percent)
+      }
+    }, (err) => {
+      reject(err)
+    }, async () => {
+      try {
+        const url = await getDownloadURL(uploadTask.snapshot.ref)
+
+        // Update user profile with photoURL
+        await updateUserProfile(userId, { photoURL: url })
+
+        // Also update any couple documents where this user is present in membersMeta
+        try {
+          const profileRef = doc(db, 'userProfiles', userId)
+          const profileSnap = await getDoc(profileRef)
+          const couplesList = profileSnap.exists() ? (profileSnap.data().couples || []) : []
+          // Update each couple's membersMeta entry (merge)
+          for (const coupleCode of couplesList) {
+            await updateDoc(doc(db, 'couples', coupleCode), {
+              [`membersMeta.${userId}.photoURL`]: url
+            })
+          }
+        } catch (err) {
+          console.debug('uploadUserAvatar: failed to update couples membersMeta', err)
+        }
+
+        resolve(url)
+      } catch (err) {
+        reject(err)
+      }
+    })
+  })
+}
+
+export const deleteUserAvatar = async (userId) => {
+  // Try to find avatar objects under avatars/{userId}/ and delete them
+  // Note: Firebase Storage SDK doesn't list by prefix in browser SDK without additional permissions.
+  // We'll instead clear the photoURL in the profile and attempt to delete the previous object if the URL contains the storage bucket path.
+  const profileRef = doc(db, 'userProfiles', userId)
+  const profileSnap = await getDoc(profileRef)
+  const photoURL = profileSnap.exists() ? profileSnap.data().photoURL : null
+  if (photoURL) {
+    try {
+      // Try to derive full path from download URL - only works for default bucket URLs
+      const match = photoURL.match(/\/b\/(.*?)\/o\/(.*?)\?alt=media/)
+      if (match) {
+        const fullPath = decodeURIComponent(match[2])
+        const fileRef = storageRef(storage, fullPath)
+        await deleteObject(fileRef)
+      }
+    } catch (err) {
+      // Non-fatal if deletion fails
+      console.debug('deleteUserAvatar: could not delete file from storage', err)
+    }
+  }
+
+  // Clear photoURL in profile
+  await updateUserProfile(userId, { photoURL: null })
+
+  // Also clear membersMeta for couples
+  try {
+    const couplesList = profileSnap.exists() ? (profileSnap.data().couples || []) : []
+    for (const coupleCode of couplesList) {
+      await updateDoc(doc(db, 'couples', coupleCode), {
+        [`membersMeta.${userId}.photoURL`]: null
+      })
+    }
+  } catch (err) {
+    console.debug('deleteUserAvatar: failed to update couples membersMeta', err)
+  }
+}
+
+// Set user's photoURL and propagate to couples.membersMeta
+export const setUserPhotoURL = async (userId, url) => {
+  // Update profile
+  await updateUserProfile(userId, { photoURL: url })
+
+  // Also update any couple documents where this user is present in membersMeta
+  try {
+    const profileRef = doc(db, 'userProfiles', userId)
+    const profileSnap = await getDoc(profileRef)
+    const couplesList = profileSnap.exists() ? (profileSnap.data().couples || []) : []
+    for (const coupleCode of couplesList) {
+      await updateDoc(doc(db, 'couples', coupleCode), {
+        [`membersMeta.${userId}.photoURL`]: url
+      })
+    }
+  } catch (err) {
+    console.debug('setUserPhotoURL: failed to update couples membersMeta', err)
+  }
+}
+
 export const getAllUserProfiles = (coupleCode, callback) => {
   if (!coupleCode) return () => {}
   
@@ -435,6 +579,7 @@ export const getAllUserProfiles = (coupleCode, callback) => {
     }
     
     const memberIds = coupleDoc.data().members || []
+    const membersMeta = coupleDoc.data().membersMeta || {}
     if (memberIds.length === 0) {
       callback({})
       return
@@ -445,6 +590,10 @@ export const getAllUserProfiles = (coupleCode, callback) => {
     let loadedCount = 0
     
     memberIds.forEach(memberId => {
+      // If membersMeta is present, pre-seed the profile to avoid needing a full userProfiles read
+      if (membersMeta[memberId]) {
+        profiles[memberId] = membersMeta[memberId]
+      }
       const userRef = doc(db, 'userProfiles', memberId)
       const unsub = onSnapshot(userRef, (userDoc) => {
         if (userDoc.exists()) {
@@ -456,10 +605,27 @@ export const getAllUserProfiles = (coupleCode, callback) => {
           callback({ ...profiles })
         }
       }, (err) => {
-        console.error('Error subscribing to user profile:', memberId, err)
-        loadedCount++
+        // If permission errors occur (e.g. Firestore rules), prefer membersMeta if available
+        if (err?.code === 'permission-denied' || err?.message?.toLowerCase?.().includes('permission')) {
+          if (membersMeta[memberId]) {
+            profiles[memberId] = membersMeta[memberId]
+            console.debug('Permission denied subscribing to user profile, using membersMeta for:', memberId)
+          } else {
+            profiles[memberId] = { id: memberId }
+            console.debug('Permission denied subscribing to user profile, using placeholder for:', memberId)
+          }
+          loadedCount++
+        } else {
+          console.error('Error subscribing to user profile:', memberId, err)
+          loadedCount++
+        }
+
         if (loadedCount >= memberIds.length) {
-          callback({ ...profiles })
+          const result = { ...profiles }
+          memberIds.forEach(id => {
+            if (!result[id]) result[id] = (membersMeta[id] || { id })
+          })
+          callback(result)
         }
       })
       profileUnsubscribers.push(unsub)

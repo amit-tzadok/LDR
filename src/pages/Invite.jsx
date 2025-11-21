@@ -25,7 +25,7 @@ export default function Invite() {
   const trioInviteLink = trioInviteCode ? `${appUrl}?invite=${trioInviteCode}` : ''
   
   const relationshipLabel = relationshipType === 'romantic' ? 'partner' : 'friend'
-  const appName = 'Our Space'
+  
 
   // Check for invite code in URL on mount
   useEffect(() => {
@@ -207,17 +207,7 @@ export default function Invite() {
     }
   }
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleEmailInvite = () => {
-    const subject = encodeURIComponent('Join me on Our Space!')
-    const body = encodeURIComponent(inviteMessage)
-    window.location.href = `mailto:?subject=${subject}&body=${body}`
-  }
+  
 
   // If user doesn't have a couple yet, show setup screen
   if (!hasCouple) {

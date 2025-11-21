@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { subscribeUserProfile } from '../services/firebase'
-import { Home, Heart, CheckCircle2, Award, MoreHorizontal, LogOut, Moon, Sun, Settings } from 'lucide-react'
+import { Home, Heart, CheckCircle2, MoreHorizontal, LogOut, Moon, Sun, Star, User } from 'lucide-react'
 import CoupleSwitcher from './CoupleSwitcher'
+import { getInitials } from '../utils/avatar'
 
 export default function Layout() {
   const { signOut, currentUser } = useAuth()
@@ -12,6 +13,7 @@ export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [userName, setUserName] = useState('')
+  const [userPhoto, setUserPhoto] = useState(null)
 
   useEffect(() => {
     if (!currentUser) return
@@ -19,6 +21,7 @@ export default function Layout() {
     const unsubscribe = subscribeUserProfile(currentUser.uid, (profile) => {
       if (profile) {
         setUserName(profile.name || '')
+        setUserPhoto(profile.photoURL || null)
       }
     })
 
@@ -35,11 +38,11 @@ export default function Layout() {
   }
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/daily-habits', icon: CheckCircle2, label: 'Daily' },
-    { path: '/date-ideas', icon: Heart, label: 'Date Ideas' },
-    { path: '/gratitude', icon: Heart, label: 'Gratitude' },
-    { path: '/more', icon: MoreHorizontal, label: 'More' },
+    { path: '/', icon: <Home className="w-6 h-6" />, label: 'Home' },
+    { path: '/daily-habits', icon: <CheckCircle2 className="w-6 h-6" />, label: 'Daily' },
+    { path: '/date-ideas', icon: <Heart className="w-6 h-6" />, label: 'Date Ideas' },
+    { path: '/gratitude', icon: <Star className="w-6 h-6" />, label: 'Gratitude' },
+    { path: '/more', icon: <MoreHorizontal className="w-6 h-6" />, label: 'More' },
   ]
 
   return (
@@ -69,13 +72,7 @@ export default function Layout() {
                 <Moon className="w-5 h-5 text-pink-500" />
               )}
             </button>
-            <button
-              onClick={() => navigate('/more')}
-              className="p-2 rounded-full hover:bg-pink-50 dark:hover:bg-gray-700 transition-colors"
-              title="Settings"
-            >
-              <Settings className="w-5 h-5 text-pink-500" />
-            </button>
+            
             <button
               onClick={handleSignOut}
               className="p-2 rounded-full hover:bg-pink-50 dark:hover:bg-gray-700 transition-colors"
@@ -83,6 +80,24 @@ export default function Layout() {
             >
               <LogOut className="w-5 h-5 text-pink-500" />
             </button>
+            {currentUser && (
+              <button
+                onClick={() => navigate('/profile')}
+                className="w-8 h-8 rounded-full overflow-hidden ml-2 focus:outline-none"
+                title="Open profile settings"
+              >
+                {userPhoto ? (
+                  <img src={userPhoto} alt="your avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold text-pink-600">
+                    {(() => {
+                      const initials = getInitials({ id: currentUser?.uid, name: userName })
+                      return initials || <User className="w-5 h-5 text-pink-500" />
+                    })()}
+                  </div>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -94,7 +109,7 @@ export default function Layout() {
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-pink-100 dark:border-gray-700 shadow-lg transition-colors">
         <div className="flex justify-around items-center py-2">
-          {navItems.map(({ path, icon: Icon, label }) => (
+          {navItems.map(({ path, icon, label }) => (
             <button
               key={path}
               onClick={() => navigate(path)}
@@ -104,7 +119,7 @@ export default function Layout() {
                   : 'text-gray-400 hover:text-pink-400 dark:text-gray-500 dark:hover:text-pink-400'
               }`}
             >
-              <Icon className="w-6 h-6" />
+                {icon}
               <span className="text-xs mt-1">{label}</span>
             </button>
           ))}

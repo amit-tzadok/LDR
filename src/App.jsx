@@ -1,5 +1,7 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+// eslint-disable-next-line no-unused-vars
+import { AnimatePresence, motion as m } from 'framer-motion'
+import { useEffect } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { useCouple } from './contexts/CoupleContext'
 import Login from './pages/Login'
@@ -35,7 +37,7 @@ const pageTransition = {
 
 function AnimatedPage({ children }) {
   return (
-    <motion.div
+    <m.div
       initial="initial"
       animate="animate"
       exit="exit"
@@ -43,7 +45,7 @@ function AnimatedPage({ children }) {
       transition={pageTransition}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -68,8 +70,17 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const { currentUser, loading } = useAuth()
-  const { hasCouple, loading: coupleLoading, coupleCode } = useCouple()
+  const { hasCouple, loading: coupleLoading } = useCouple()
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // If user lands on /invite but already has a couple (HashRouter uses the hash), send them to root
+  useEffect(() => {
+    const onInvitePath = location.pathname === '/invite' || (location.hash && location.hash.includes('/invite'))
+    if (hasCouple && onInvitePath) {
+      navigate('/', { replace: true })
+    }
+  }, [hasCouple, location.pathname, location.hash, navigate])
 
   if (loading || coupleLoading) {
     return (

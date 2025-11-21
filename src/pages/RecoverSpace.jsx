@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RefreshCw, AlertCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { updateUserProfile } from '../services/firebase'
 

@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { User, Save, Bell, BellOff, Trash2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { subscribeUserProfile, updateUserProfile, getAllUserProfiles } from '../services/firebase'
+import { subscribeUserProfile, updateUserProfile, getAllUserProfiles, setUserPhotoURL } from '../services/firebase'
 import { requestNotificationPermission } from '../utils/notifications'
 import { useCouple } from '../contexts/CoupleContext'
 import { deleteUser } from 'firebase/auth'
 import { doc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
-import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
-  const { currentUser, logout } = useAuth()
+  const { currentUser } = useAuth()
   const { coupleCode } = useCouple()
   const [name, setName] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const [pasteUrl, setPasteUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [userProfiles, setUserProfiles] = useState({})
@@ -20,7 +21,7 @@ export default function Profile() {
   const [notificationLoading, setNotificationLoading] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  const navigate = useNavigate()
+  
 
   useEffect(() => {
     if (!currentUser) return
@@ -28,6 +29,7 @@ export default function Profile() {
     const unsubscribe = subscribeUserProfile(currentUser.uid, (profile) => {
       if (profile) {
         setName(profile.name || '')
+        setAvatarPreview(profile.photoURL || null)
       }
     })
 
@@ -134,6 +136,51 @@ export default function Profile() {
           Your Information
         </h2>
         <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Avatar</label>
+            <div className="flex items-center gap-4 mt-2">
+              <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-pink-500" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paste image URL</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://example.com/photo.jpg"
+                      value={pasteUrl}
+                      onChange={(e) => setPasteUrl(e.target.value)}
+                      className="input flex-1"
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!pasteUrl) return alert('Please paste a valid image URL')
+                        if (!currentUser) return alert('Not signed in')
+                        try {
+                          await setUserPhotoURL(currentUser.uid, pasteUrl)
+                          setAvatarPreview(pasteUrl)
+                          setPasteUrl('')
+                          alert('Avatar set from URL')
+                        } catch (err) {
+                          console.error('Failed to set avatar URL:', err)
+                          alert('Failed to set avatar URL')
+                        }
+                      }}
+                      className="btn-primary px-3"
+                      type="button"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div>
             <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name</label>
             <p className="text-lg text-gray-800 dark:text-gray-100">{myProfile?.name || 'Not set'}</p>

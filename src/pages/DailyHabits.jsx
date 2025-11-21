@@ -64,7 +64,7 @@ export default function DailyHabits() {
     return partner ? completions[today][partner] === true : false
   }
 
-  const getPartnerName = (habit) => {
+  const getPartnerName = () => {
     // Find partner email from any completion
     const partnerEmail = Object.values(userProfiles).find(
       profile => profile.email !== currentUser.email

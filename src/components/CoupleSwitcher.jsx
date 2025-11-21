@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useCouple } from '../contexts/CoupleContext'
 import { Users, ChevronDown, LogOut } from 'lucide-react'
+import { getInitials } from '../utils/avatar'
 import { getCouple, getAllUserProfiles } from '../services/firebase'
 
 export default function CoupleSwitcher() {
@@ -94,8 +95,6 @@ export default function CoupleSwitcher() {
     return null
   }
 
-  const activeCoupleData = couples[coupleCode]
-  const memberCount = activeCoupleData?.members?.length || 1
   const activeCoupleName = getCoupleDisplayName(coupleCode)
 
   return (
@@ -139,7 +138,28 @@ export default function CoupleSwitcher() {
                     onClick={() => !isActive && handleSwitch(code)}
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <Users className="w-4 h-4 flex-shrink-0" />
+                          {/* Avatars: show up to 3 member avatars, fallback to icon */}
+                          <div className="flex items-center -space-x-2 mr-2">
+                            {(() => {
+                              const profilesObj = coupleProfiles[code] || {}
+                              const memberIds = couple?.members || Object.keys(profilesObj)
+                              const avatars = memberIds.map(id => profilesObj[id] || (couple?.membersMeta?.[id] || { id }))
+                              return avatars.slice(0, 3).map((p, i) => (
+                                p?.photoURL ? (
+                                  <img
+                                    key={p.id || i}
+                                    src={p.photoURL}
+                                    alt={p.name || 'avatar'}
+                                    className="w-6 h-6 rounded-full border-2 border-white dark:border-gray-800 object-cover"
+                                  />
+                                ) : (
+                                  <div key={p.id || i} className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-pink-600 font-semibold">
+                                    {getInitials(p) || (p.id ? String(p.id).slice(0,2).toUpperCase() : '')}
+                                  </div>
+                                )
+                              ))
+                            })()}
+                          </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">
                           {displayName}

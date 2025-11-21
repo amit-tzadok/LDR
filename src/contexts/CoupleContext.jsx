@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/exhaustive-deps */
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 import { getUserCoupleCode } from '../services/coupleService'
@@ -52,13 +53,15 @@ export function CoupleProvider({ children }) {
     try {
       console.log('Leaving couple:', coupleCodeToLeave)
       
-      const { doc, getDoc, updateDoc, arrayRemove } = await import('firebase/firestore')
+      const { doc, getDoc, updateDoc, arrayRemove, deleteField } = await import('firebase/firestore')
       const { db } = await import('../firebase')
       
       // Remove user from couple members array
       const coupleRef = doc(db, 'couples', coupleCodeToLeave)
       await updateDoc(coupleRef, {
-        members: arrayRemove(currentUser.uid)
+        members: arrayRemove(currentUser.uid),
+        // remove the membersMeta entry for this user
+        [`membersMeta.${currentUser.uid}`]: deleteField()
       })
       
       console.log('Removed from couple members')
@@ -132,6 +135,7 @@ export function CoupleProvider({ children }) {
 
   // Cleanup effect: Remove references to couples that no longer exist or user is not a member of
   // Only run once on mount to avoid aggressive cleanup
+   
   useEffect(() => {
     let hasRun = false
     
