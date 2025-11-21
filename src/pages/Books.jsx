@@ -192,30 +192,38 @@ export default function Books() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
             <input
+              id="bookTitle"
+              name="title"
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="input"
               required
               placeholder="Book title"
+              autoComplete="off"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Author *</label>
             <input
+              id="bookAuthor"
+              name="author"
               type="text"
               value={formData.author}
               onChange={(e) => setFormData({ ...formData, author: e.target.value })}
               className="input"
               required
               placeholder="Author name"
+              autoComplete="off"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
             <select
+              id="bookStatus"
+              name="status"
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               className="input"
@@ -230,6 +238,8 @@ export default function Books() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
             <textarea
+              id="bookNotes"
+              name="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="input"
@@ -391,12 +401,15 @@ export default function Books() {
             <form onSubmit={handleDiscussionSubmit} className="p-6 border-t border-gray-200 dark:border-gray-700">
               <div className="flex gap-2">
                 <input
+                  id="bookDiscussion"
+                  name="discussion"
                   type="text"
                   value={newDiscussion}
                   onChange={(e) => setNewDiscussion(e.target.value)}
                   placeholder="Share your thoughts..."
                   className="input flex-1"
                   required
+                  autoComplete="off"
                 />
                 <button type="submit" className="btn-primary flex items-center gap-2">
                   <Send className="w-5 h-5" />

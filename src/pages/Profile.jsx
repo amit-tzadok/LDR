@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { User, Save, Bell, BellOff, Trash2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { subscribeUserProfile, updateUserProfile, getAllUserProfiles, setUserPhotoURL } from '../services/firebase'
+import { subscribeUserProfile, updateUserProfileAndPropagate, getAllUserProfiles, setUserPhotoURL, backfillCoupleMembersMeta } from '../services/firebase'
 import { requestNotificationPermission } from '../utils/notifications'
 import { useCouple } from '../contexts/CoupleContext'
 import { deleteUser } from 'firebase/auth'
@@ -56,15 +56,60 @@ export default function Profile() {
     setSuccess(false)
 
     try {
-      await updateUserProfile(currentUser.uid, {
+      // Update profile and propagate into couples.membersMeta
+      await updateUserProfileAndPropagate(currentUser.uid, {
         name: name.trim(),
         email: currentUser.email
       })
+
+      // Also backfill the active couple's membersMeta so partners immediately
+      // see the updated info (safe no-op if no active couple)
+      if (coupleCode) {
+        try {
+          await backfillCoupleMembersMeta(coupleCode)
+        } catch (err) {
+          // Non-fatal: log and continue
+          console.debug('Profile save: backfill failed', err)
+        }
+      }
+
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (error) {
       console.error('Error updating profile:', error)
       alert('Failed to update profile')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePropagate = async () => {
+    if (!currentUser) return
+    setLoading(true)
+    try {
+      // Use existing name/email to propagate to couples.membersMeta
+      await updateUserProfileAndPropagate(currentUser.uid, {
+        name: name.trim(),
+        email: currentUser.email
+      })
+      alert('Profile propagated to your spaces')
+    } catch (err) {
+      console.error('Propagation failed:', err)
+      alert('Failed to propagate profile to spaces')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSyncSpace = async () => {
+    if (!coupleCode) return alert('No active space to sync')
+    setLoading(true)
+    try {
+      await backfillCoupleMembersMeta(coupleCode)
+      alert('Space profiles synced')
+    } catch (err) {
+      console.error('Sync failed:', err)
+      alert('Failed to sync space profiles: ' + (err.message || 'unknown error'))
     } finally {
       setLoading(false)
     }
@@ -129,13 +174,7 @@ export default function Profile() {
           Manage your profile information
         </p>
       </div>
-
-      {/* Current Info */}
-      <div className="card bg-gradient-to-br from-pink-50 to-green-50 dark:from-gray-800 dark:to-gray-700">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Your Information
-        </h2>
-        <div className="space-y-3">
+      <div className="space-y-3">
           <div>
             <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Avatar</label>
             <div className="flex items-center gap-4 mt-2">
@@ -151,24 +190,38 @@ export default function Profile() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paste image URL</label>
                   <div className="flex gap-2">
                     <input
+                      id="avatarUrl"
+                      name="avatarUrl"
                       type="url"
                       placeholder="https://example.com/photo.jpg"
                       value={pasteUrl}
                       onChange={(e) => setPasteUrl(e.target.value)}
                       className="input flex-1"
+                      autoComplete="off"
                     />
                     <button
                       onClick={async () => {
                         if (!pasteUrl) return alert('Please paste a valid image URL')
                         if (!currentUser) return alert('Not signed in')
+                        setLoading(true)
                         try {
                           await setUserPhotoURL(currentUser.uid, pasteUrl)
                           setAvatarPreview(pasteUrl)
                           setPasteUrl('')
+                          // Also backfill the active couple so partners see the updated avatar immediately
+                          if (coupleCode) {
+                            try {
+                              await backfillCoupleMembersMeta(coupleCode)
+                            } catch (err) {
+                              console.debug('Post-avatar backfill failed', err)
+                            }
+                          }
                           alert('Avatar set from URL')
                         } catch (err) {
                           console.error('Failed to set avatar URL:', err)
                           alert('Failed to set avatar URL')
+                        } finally {
+                          setLoading(false)
                         }
                       }}
                       className="btn-primary px-3"
@@ -190,7 +243,6 @@ export default function Profile() {
             <p className="text-lg text-gray-800 dark:text-gray-100">{currentUser?.email}</p>
           </div>
         </div>
-      </div>
 
       {/* Partner Info */}
       {partnerProfile && (
@@ -201,11 +253,11 @@ export default function Profile() {
           <div className="space-y-3">
             <div>
               <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name</label>
-              <p className="text-lg text-gray-800 dark:text-gray-100">{partnerProfile.name}</p>
+              <p className="text-lg text-gray-800 dark:text-gray-100">{partnerProfile?.name || partnerProfile?.email || 'Not set'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Email</label>
-              <p className="text-lg text-gray-800 dark:text-gray-100">{partnerProfile.email}</p>
+              <p className="text-lg text-gray-800 dark:text-gray-100">{partnerProfile?.email || 'Not set'}</p>
             </div>
           </div>
         </div>
@@ -222,12 +274,15 @@ export default function Profile() {
               Your Name
             </label>
             <input
+              id="displayName"
+              name="displayName"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
               placeholder="Enter your name"
               required
+              autoComplete="name"
             />
           </div>
           
@@ -243,7 +298,7 @@ export default function Profile() {
             className="btn-primary flex items-center gap-2"
           >
             <Save className="w-5 h-5" />
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? 'Saving...' : 'Save & Sync'}
           </button>
         </div>
       </form>

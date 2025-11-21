@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCouple } from '../contexts/CoupleContext'
 import { Users, ChevronDown, LogOut } from 'lucide-react'
 import { getInitials } from '../utils/avatar'
 import { getCouple, getAllUserProfiles } from '../services/firebase'
 
 export default function CoupleSwitcher() {
+  const navigate = useNavigate()
   const { coupleCode, coupleCodes, switchCouple, leaveCouple, hasMultipleCouples } = useCouple()
   const [isOpen, setIsOpen] = useState(false)
   const [couples, setCouples] = useState({})
@@ -105,7 +107,15 @@ export default function CoupleSwitcher() {
       >
         <Users className="w-4 h-4 flex-shrink-0" />
         <span className="text-sm font-medium truncate">
-          {activeCoupleName}
+          <span
+            className="cursor-pointer hover:underline"
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate('/space-settings')
+            }}
+          >
+            {activeCoupleName}
+          </span>
         </span>
         {hasMultipleCouples && <ChevronDown className="w-4 h-4 flex-shrink-0" />}
       </button>

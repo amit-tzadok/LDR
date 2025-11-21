@@ -118,6 +118,8 @@ export default function SpaceSettings() {
         {isEditingName ? (
           <div className="space-y-3">
             <input
+              id="spaceCustomName"
+              name="customName"
               type="text"
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}

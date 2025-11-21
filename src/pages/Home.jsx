@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Heart, MapPin, BookOpen, Tv, Plane, Sparkles, Calendar, UserPlus, Mail, Award, CheckCircle2, StickyNote, Plus, X } from 'lucide-react'
-import { getSettings, updateNextMeetDate, subscribeStickyNotes, addStickyNote, getAllUserProfiles } from '../services/firebase'
+import { getSettings, updateNextMeetDate, subscribeStickyNotes, addStickyNote, getAllUserProfiles, subscribeUserProfile } from '../services/firebase'
 import { useCouple } from '../contexts/CoupleContext'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -27,10 +27,31 @@ export default function Home() {
   const navigate = useNavigate()
   const { coupleCode } = useCouple()
   const { currentUser } = useAuth()
+  const [showHomeBanner, setShowHomeBanner] = useState(false)
+  const [isNewUser, setIsNewUser] = useState(false)
 
   // Check if this is a new user without a couple and show welcome modal
   useEffect(() => {
     if (!coupleCode && currentUser) {
+      const hidden = sessionStorage.getItem(`hideHomeBanner_${currentUser.uid}`)
+      // determine if the user is recently created ("just signed up")
+      const unsubProfile = subscribeUserProfile(currentUser.uid, (profile) => {
+        if (profile && profile.createdAt) {
+          // Firestore serverTimestamp may be a Timestamp object with toDate()
+          const created = profile.createdAt?.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt)
+          const ageMs = Date.now() - created.getTime()
+          // Consider "just signed up" as within the last 24 hours
+          const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
+          const recent = ageMs >= 0 && ageMs <= TWENTY_FOUR_HOURS
+          setIsNewUser(recent)
+          setShowHomeBanner(recent && !hidden)
+        } else {
+          // If no profile data, default to not showing the banner
+          setIsNewUser(false)
+          setShowHomeBanner(false)
+        }
+      })
+
       const hasSeenWelcome = sessionStorage.getItem(`hasSeenWelcome_${currentUser.uid}`)
       if (!hasSeenWelcome) {
         // Avoid synchronous setState in effect to prevent cascading renders
@@ -39,6 +60,7 @@ export default function Home() {
           sessionStorage.setItem(`hasSeenWelcome_${currentUser.uid}`, 'true')
         }, 0)
       }
+      return () => unsubProfile && unsubProfile()
     }
   }, [coupleCode, currentUser])
 
@@ -230,6 +252,35 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
+      {/* Empty-state / banner for users without a couple */}
+      {!coupleCode && currentUser && showHomeBanner && isNewUser && (
+        <div className="card bg-gradient-to-r from-blue-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 border-2 border-blue-200 dark:border-pink-700 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Create a Shared Space</h2>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Connect with your partner or friend — create a private space or join one using an invite code.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/invite')}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Set Up / Join
+              </button>
+              <button
+                onClick={() => {
+                  try { sessionStorage.setItem(`hideHomeBanner_${currentUser.uid}`, '1') } catch (e) {}
+                  setShowHomeBanner(false)
+                }}
+                className="btn-secondary"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Sticky Notes Corner */}
       {stickyNotes.length > 0 && (
         <div className="fixed bottom-24 right-4 z-40 space-y-2" style={{ maxWidth: '200px' }}>
@@ -299,6 +350,8 @@ export default function Home() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message *</label>
                 <textarea
+                  id="stickyNoteMessage"
+                  name="stickyNoteMessage"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   className="input"
@@ -385,10 +438,13 @@ export default function Home() {
         {showDatePicker && (
           <div className="mt-4 p-4 bg-white dark:bg-gray-700 rounded-xl">
             <input
+              id="nextMeetDate"
+              name="nextMeetDate"
               type="date"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
               className="input mb-3"
+              autoComplete="off"
             />
             <div className="flex gap-2">
               <button onClick={handleUpdateDate} className="btn-primary flex-1">

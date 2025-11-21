@@ -457,6 +457,71 @@ export const updateUserProfile = async (userId, updates) => {
   }, { merge: true })
 }
 
+// Propagate profile name/email changes into couples.membersMeta so other
+// members who cannot read `userProfiles` (due to rules) still see up-to-date
+// display info. This is safe to run after updating the profile.
+export const updateUserProfileAndPropagate = async (userId, updates) => {
+  const profileRef = doc(db, 'userProfiles', userId)
+  await setDoc(profileRef, {
+    ...updates,
+    updatedAt: serverTimestamp()
+  }, { merge: true })
+
+  try {
+    const profileSnap = await getDoc(profileRef)
+    const couplesList = profileSnap.exists() ? (profileSnap.data().couples || []) : []
+    for (const coupleCode of couplesList) {
+      const coupleRef = doc(db, 'couples', coupleCode)
+      const metaUpdates = {}
+      if ('name' in updates) metaUpdates[`membersMeta.${userId}.name`] = updates.name || null
+      if ('email' in updates) metaUpdates[`membersMeta.${userId}.email`] = updates.email || null
+      if (Object.keys(metaUpdates).length > 0) {
+        await updateDoc(coupleRef, metaUpdates)
+      }
+    }
+  } catch (err) {
+    console.debug('updateUserProfileAndPropagate: failed to propagate to couples.membersMeta', err)
+  }
+}
+
+// Backfill membersMeta for a couple by reading each member's userProfiles
+export const backfillCoupleMembersMeta = async (coupleCode) => {
+  if (!coupleCode) throw new Error('No coupleCode provided')
+  const coupleRef = doc(db, 'couples', coupleCode)
+  const coupleSnap = await getDoc(coupleRef)
+  if (!coupleSnap.exists()) throw new Error('Couple not found')
+
+  const memberIds = coupleSnap.data().members || []
+  const updates = {}
+
+  for (const memberId of memberIds) {
+    try {
+      const profileRef = doc(db, 'userProfiles', memberId)
+      const profileSnap = await getDoc(profileRef)
+      if (profileSnap.exists()) {
+        const p = profileSnap.data()
+        updates[`membersMeta.${memberId}`] = {
+          id: memberId,
+          name: p.name || null,
+          email: p.email || null,
+          photoURL: p.photoURL || null
+        }
+      } else {
+        // If profile missing, leave placeholder id only
+        updates[`membersMeta.${memberId}`] = { id: memberId }
+      }
+    } catch (err) {
+      // On permission errors, try to keep existing membersMeta or set id
+      console.debug('backfillCoupleMembersMeta: could not read profile for', memberId, err)
+      updates[`membersMeta.${memberId}`] = { id: memberId }
+    }
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await updateDoc(coupleRef, updates)
+  }
+}
+
 // Avatar upload & management
 export const uploadUserAvatar = (file, userId, onProgress) => {
   return new Promise((resolve, reject) => {

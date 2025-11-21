@@ -15,7 +15,7 @@ export default function Invite() {
   const [memberCount, setMemberCount] = useState(1)
   const [joinInviteCode, setJoinInviteCode] = useState('')
   const [relationshipType, setRelationshipType] = useState('romantic') // 'romantic' or 'platonic'
-  const { coupleCode, hasCouple, refreshCoupleCode, leaveCouple, switchCouple } = useCouple()
+  const { coupleCode, coupleCodes, userProfile, hasCouple, refreshCoupleCode, leaveCouple, switchCouple } = useCouple()
   const { currentUser } = useAuth()
   const navigate = useNavigate()
   
@@ -29,6 +29,13 @@ export default function Invite() {
 
   // Check for invite code in URL on mount
   useEffect(() => {
+    try {
+      // mark that the user visited the invite page so we don't force-redirect
+      // returning users to /invite on subsequent visits
+      localStorage.setItem('seenInvite', '1')
+    } catch (err) {
+      // ignore localStorage errors (e.g. SSR or restricted environments)
+    }
     const params = new URLSearchParams(window.location.search)
     const urlInviteCode = params.get('invite')
     if (urlInviteCode) {
@@ -290,12 +297,15 @@ export default function Invite() {
           </p>
           <form onSubmit={handleJoinCouple} className="space-y-3">
             <input
+              id="joinInviteCode"
+              name="joinInviteCode"
               type="text"
               value={joinInviteCode}
               onChange={(e) => setJoinInviteCode(e.target.value.toLowerCase())}
               placeholder="Enter invite code"
               className="input w-full font-mono text-center text-lg"
               required
+              autoComplete="one-time-code"
             />
             <button
               type="submit"
@@ -323,6 +333,8 @@ export default function Invite() {
         </p>
       </div>
 
+      {/* Debug panel removed */}
+
       {error && (
         <div className="card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
           <p className="text-red-700 dark:text-red-300">{error}</p>
@@ -340,11 +352,14 @@ export default function Invite() {
         </p>
         <form onSubmit={handleJoinCouple} className="space-y-3">
           <input
+            id="joinInviteCodeAlt"
+            name="joinInviteCode"
             type="text"
             value={joinInviteCode}
             onChange={(e) => setJoinInviteCode(e.target.value.toLowerCase())}
             placeholder="Enter their invite code"
             className="input w-full font-mono text-center text-lg"
+            autoComplete="one-time-code"
           />
           <button
             type="submit"

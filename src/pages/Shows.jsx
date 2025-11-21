@@ -163,18 +163,23 @@ export default function Shows() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title *</label>
             <input
+              id="showTitle"
+              name="title"
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="input"
               required
               placeholder="Show or movie title"
+              autoComplete="off"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type *</label>
             <select
+              id="showType"
+              name="type"
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
               className="input"
@@ -189,6 +194,8 @@ export default function Shows() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platform *</label>
             <select
+              id="showPlatform"
+              name="platform"
               value={formData.platform}
               onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
               className="input"
@@ -203,6 +210,8 @@ export default function Shows() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status *</label>
             <select
+              id="showStatus"
+              name="status"
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               className="input"
@@ -248,6 +257,8 @@ export default function Shows() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
             <textarea
+              id="showNotes"
+              name="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="input"

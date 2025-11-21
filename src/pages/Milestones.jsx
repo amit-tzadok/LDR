@@ -163,6 +163,8 @@ export default function Milestones() {
                 Title
               </label>
               <input
+                id="milestoneTitle"
+                name="title"
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -176,6 +178,8 @@ export default function Milestones() {
                 Description (optional)
               </label>
               <textarea
+                id="milestoneDescription"
+                name="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="input min-h-[80px]"
@@ -188,6 +192,8 @@ export default function Milestones() {
                   Date
                 </label>
                 <input
+                  id="milestoneDate"
+                  name="date"
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
@@ -200,6 +206,8 @@ export default function Milestones() {
                   Category
                 </label>
                 <select
+                  id="milestoneCategory"
+                  name="category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="input"

@@ -84,12 +84,15 @@ export default function FutureTrips() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Destination *</label>
             <input
+              id="tripDestination"
+              name="destination"
               type="text"
               value={formData.destination}
               onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
               className="input"
               required
               placeholder="Where are we going?"
+              autoComplete="off"
             />
           </div>
 
@@ -98,6 +101,8 @@ export default function FutureTrips() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Date</label>
             <input
+              id="tripEstimatedDate"
+              name="estimatedDate"
               type="date"
               value={formData.estimatedDate}
               onChange={(e) => setFormData({ ...formData, estimatedDate: e.target.value })}
@@ -108,6 +113,8 @@ export default function FutureTrips() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
             <textarea
+              id="tripNotes"
+              name="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="input"

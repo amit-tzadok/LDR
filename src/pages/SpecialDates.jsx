@@ -118,12 +118,15 @@ export default function SpecialDates() {
                   Title *
                 </label>
                 <input
+                  id="specialDateTitle"
+                  name="title"
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="input"
                   required
                   placeholder="e.g., Our First Date"
+                  autoComplete="off"
                 />
               </div>
 
@@ -132,6 +135,8 @@ export default function SpecialDates() {
                   Date *
                 </label>
                 <input
+                  id="specialDateDate"
+                  name="date"
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
@@ -146,6 +151,8 @@ export default function SpecialDates() {
                 Category *
               </label>
               <select
+                id="specialDateCategory"
+                name="category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="input"
@@ -162,6 +169,8 @@ export default function SpecialDates() {
                 Notes
               </label>
               <textarea
+                id="specialDateNotes"
+                name="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="input"

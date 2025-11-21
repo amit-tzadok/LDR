@@ -111,18 +111,23 @@ export default function DateIdeasByLocation() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title *</label>
             <input
+              id="ideaTitle"
+              name="title"
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="input"
               required
               placeholder="What do you want to do?"
+              autoComplete="off"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
             <textarea
+              id="ideaDescription"
+              name="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="input"
@@ -134,6 +139,8 @@ export default function DateIdeasByLocation() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category *</label>
             <select
+              id="ideaCategory"
+              name="category"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="input"
@@ -148,11 +155,14 @@ export default function DateIdeasByLocation() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location *</label>
             <input
+              id="ideaLocation"
+              name="location"
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="input"
               placeholder="e.g., Buffalo NY 🌨️, New York City 🗽, California 🌴"
+              autoComplete="off"
             />
           </div>
 

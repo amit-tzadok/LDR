@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { subscribeUserProfile } from '../services/firebase'
 import { Home, Heart, CheckCircle2, MoreHorizontal, LogOut, Moon, Sun, Star, User } from 'lucide-react'
+import { Key } from 'lucide-react'
 import CoupleSwitcher from './CoupleSwitcher'
 import { getInitials } from '../utils/avatar'
 

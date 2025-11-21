@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion as m } from 'framer-motion'
-import { useEffect } from 'react'
+// no direct React hooks needed here
 import { useAuth } from './contexts/AuthContext'
 import { useCouple } from './contexts/CoupleContext'
 import Login from './pages/Login'
@@ -72,15 +72,12 @@ function App() {
   const { currentUser, loading } = useAuth()
   const { hasCouple, loading: coupleLoading } = useCouple()
   const location = useLocation()
-  const navigate = useNavigate()
-
-  // If user lands on /invite but already has a couple (HashRouter uses the hash), send them to root
-  useEffect(() => {
-    const onInvitePath = location.pathname === '/invite' || (location.hash && location.hash.includes('/invite'))
-    if (hasCouple && onInvitePath) {
-      navigate('/', { replace: true })
-    }
-  }, [hasCouple, location.pathname, location.hash, navigate])
+  // NOTE: we no longer auto-redirect users away from /invite when they already
+  // have a couple. The app should treat the Home page as the primary landing
+  // for users in a couple, but the Invite page must remain accessible so users
+  // can copy/share invite codes or create additional spaces. Previous behavior
+  // redirected to `/` whenever `hasCouple` was true — remove that to allow
+  // visiting `/invite` explicitly.
 
   if (loading || coupleLoading) {
     return (
@@ -95,7 +92,25 @@ function App() {
       <Routes location={location} key={location.pathname}>
         <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/" />} />
         <Route path="/" element={currentUser ? <Layout /> : <Navigate to={`/login${location.search}`} />}>
-          <Route index element={hasCouple ? <AnimatedPage><Home /></AnimatedPage> : <Navigate to="/invite" replace />} />
+          {
+            /* If user has a couple, show Home. If not, only redirect to /invite
+               for truly new visitors — tracked by a localStorage flag set when
+               the Invite page is visited. This avoids forcing returning users
+               (who may not have created a couple yet) to the Invite page by
+               default. */
+          }
+          <Route
+            index
+            element={
+              hasCouple ? (
+                <AnimatedPage><Home /></AnimatedPage>
+              ) : (
+                (typeof window !== 'undefined' && localStorage.getItem('seenInvite'))
+                  ? <AnimatedPage><Home /></AnimatedPage>
+                  : <Navigate to="/invite" replace />
+              )
+            }
+          />
           <Route path="date-ideas" element={<AnimatedPage><DateIdeas /></AnimatedPage>} />
           <Route path="date-ideas-by-location" element={<AnimatedPage><DateIdeasByLocation /></AnimatedPage>} />
           <Route path="books" element={<AnimatedPage><Books /></AnimatedPage>} />

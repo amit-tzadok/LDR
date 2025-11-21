@@ -116,12 +116,15 @@ export default function Login() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
                 <input
+                  id="loginName"
+                  name="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="input"
                   required
                   placeholder="Your name"
+                  autoComplete="name"
                 />
               </div>
               
@@ -133,6 +136,8 @@ export default function Login() {
                 <div className="space-y-2 mb-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
+                      id="startNew"
+                      name="coupleJoinOption"
                       type="radio"
                       checked={!isJoining}
                       onChange={() => setIsJoining(false)}
@@ -142,6 +147,8 @@ export default function Login() {
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
+                      id="joinExisting"
+                      name="coupleJoinOption"
                       type="radio"
                       checked={isJoining}
                       onChange={() => setIsJoining(true)}
@@ -154,12 +161,15 @@ export default function Login() {
                 {isJoining && (
                   <div>
                     <input
+                      id="signupInviteCode"
+                      name="inviteCode"
                       type="text"
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value.toLowerCase())}
                       className="input text-center font-mono text-lg"
                       placeholder="Enter invite code"
                       required
+                      autoComplete="one-time-code"
                     />
                   </div>
                 )}
@@ -170,18 +180,23 @@ export default function Login() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
             <input
+              id="loginEmail"
+              name="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input"
               required
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
             <input
+              id="loginPassword"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -189,6 +204,7 @@ export default function Login() {
               required
               placeholder="••••••••"
               minLength={6}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
             />
           </div>
 
