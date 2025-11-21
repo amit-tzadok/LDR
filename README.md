@@ -91,26 +91,6 @@ Our Space is a mobile-responsive web app for couples (and close friends) to shar
 - Click the checkmark on date ideas to mark them as complete
 - Toggle "Show completed ideas" to hide/show finished date ideas
 
-## Project Structure 📁
-
-│   ├── components/
-│   ├── contexts/
-│   │   └── AuthContext.jsx     # Authentication context
-│   ├── pages/
-│   │   ├── Login.jsx           # Login/Sign up page
-│   │   ├── Home.jsx            # Home with countdown
-│   │   ├── DateIdeas.jsx       # Date ideas list
-│   │   ├── DateIdeasByLocation.jsx
-│   │   ├── Books.jsx
-│   │   ├── Shows.jsx
-│   │   ├── FutureTrips.jsx
-│   ├── services/
-│   │   └── firebase.js         # Firebase service functions
-│   ├── App.jsx                 # Main app with routing
-├── package.json
-├── vite.config.js
-└── README.md
-
 ## Deployment 🌐
 ### Deploy to Firebase Hosting
 
