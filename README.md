@@ -170,14 +170,6 @@ Edit the `platforms` array in `src/pages/Shows.jsx`
 - [ ] Push notifications
 - [ ] Offline mode with local caching
 
-## Contributing 🤝
-
-This is a personal project for Amit & RJ, but feel free to fork it for your own relationship!
-
 ## License 📄
 
 This project is open source and available under the MIT License.
-
----
-
-Made with ❤️ for long-distance love
