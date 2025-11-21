@@ -97,7 +97,7 @@ export default function Login() {
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-green-500 bg-clip-text text-transparent">
-            LDR App
+            Our Space
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">Our shared space to plan our future together</p>
         </div>

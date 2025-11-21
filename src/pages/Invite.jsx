@@ -25,7 +25,7 @@ export default function Invite() {
   const trioInviteLink = trioInviteCode ? `${appUrl}?invite=${trioInviteCode}` : ''
   
   const relationshipLabel = relationshipType === 'romantic' ? 'partner' : 'friend'
-  const appName = relationshipType === 'romantic' ? 'LDR app' : 'shared space'
+  const appName = 'Our Space'
 
   // Check for invite code in URL on mount
   useEffect(() => {
@@ -214,7 +214,7 @@ export default function Invite() {
   }
 
   const handleEmailInvite = () => {
-    const subject = encodeURIComponent('Join me on our LDR app!')
+    const subject = encodeURIComponent('Join me on Our Space!')
     const body = encodeURIComponent(inviteMessage)
     window.location.href = `mailto:?subject=${subject}&body=${body}`
   }
