@@ -25,6 +25,8 @@ export default function Books() {
     status: 'Not Started',
     notes: '',
     rating: 0,
+    totalPages: '',
+    currentPage: 0,
   })
 
   useEffect(() => {
@@ -49,13 +51,24 @@ export default function Books() {
     e.preventDefault()
     
     if (editingId) {
-      await updateBook(editingId, formData)
+      // Ensure numeric fields are proper types
+      const updates = { ...formData }
+      if (updates.totalPages === '') updates.totalPages = null
+      else updates.totalPages = Number(updates.totalPages)
+      updates.currentPage = Number(updates.currentPage || 0)
+      // If currentPage meets or exceeds totalPages, mark finished
+      if (updates.totalPages && updates.currentPage >= updates.totalPages) updates.status = 'Finished'
+      await updateBook(editingId, updates)
       setEditingId(null)
     } else {
-      await addBook(coupleCode, formData)
+      const payload = { ...formData }
+      payload.totalPages = payload.totalPages === '' ? null : Number(payload.totalPages)
+      payload.currentPage = Number(payload.currentPage || 0)
+      if (payload.totalPages && payload.currentPage >= payload.totalPages) payload.status = 'Finished'
+      await addBook(coupleCode, payload)
     }
 
-    setFormData({ title: '', author: '', status: 'Not Started', notes: '', rating: 0 })
+    setFormData({ title: '', author: '', status: 'Not Started', notes: '', rating: 0, totalPages: '', currentPage: 0 })
     setShowForm(false)
   }
 
@@ -66,6 +79,8 @@ export default function Books() {
       status: book.status,
       notes: book.notes || '',
       rating: book.rating || 0,
+      totalPages: book.totalPages || '',
+      currentPage: book.currentPage || 0,
     })
     setEditingId(book.id)
     setShowForm(true)
@@ -146,7 +161,7 @@ export default function Books() {
           onClick={() => {
             setShowForm(!showForm)
             setEditingId(null)
-            setFormData({ title: '', author: '', status: 'Not Started', notes: '', rating: 0 })
+            setFormData({ title: '', author: '', status: 'Not Started', notes: '', rating: 0, totalPages: '', currentPage: 0 })
           }}
           className="btn-primary inline-flex items-center gap-2"
         >
@@ -248,6 +263,37 @@ export default function Books() {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Total Pages</label>
+              <input
+                id="bookTotalPages"
+                name="totalPages"
+                type="number"
+                min={1}
+                value={formData.totalPages}
+                onChange={(e) => setFormData({ ...formData, totalPages: e.target.value })}
+                className="input"
+                placeholder="e.g. 320"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Current Page</label>
+              <input
+                id="bookCurrentPage"
+                name="currentPage"
+                type="number"
+                min={0}
+                value={formData.currentPage}
+                onChange={(e) => setFormData({ ...formData, currentPage: e.target.value })}
+                className="input"
+                placeholder="0"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
             {renderStars(formData.rating, true, (rating) => setFormData({ ...formData, rating }))}
@@ -295,6 +341,61 @@ export default function Books() {
               {book.rating > 0 && (
                 <div className="mb-3">
                   {renderStars(book.rating)}
+                </div>
+              )}
+
+              {/* Progress display */}
+              {book.totalPages && Number(book.totalPages) > 0 && (
+                <div className="mb-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-3 bg-pink-500"
+                      style={{ width: `${Math.min(100, Math.round((Number(book.currentPage || 0) / Number(book.totalPages)) * 100))}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <div>{Math.min(100, Math.round((Number(book.currentPage || 0) / Number(book.totalPages)) * 100))}%</div>
+                    <div>{Math.max(0, Number(book.totalPages) - Number(book.currentPage || 0))} pages left</div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      onClick={async () => {
+                        const newPage = Math.max(0, Number(book.currentPage || 0) - 1)
+                        const updates = { currentPage: newPage }
+                        if (book.totalPages && newPage < Number(book.totalPages) && book.status === 'Finished') updates.status = 'In Progress'
+                        await updateBook(book.id, updates)
+                      }}
+                      className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                      title="Decrease page"
+                    >
+                      -
+                    </button>
+                    <div className="text-sm text-gray-700">Page {Number(book.currentPage || 0)} / {Number(book.totalPages)}</div>
+                    <button
+                      onClick={async () => {
+                        const newPage = Math.min(Number(book.totalPages), Number(book.currentPage || 0) + 1)
+                        const updates = { currentPage: newPage }
+                        if (book.totalPages && newPage >= Number(book.totalPages)) updates.status = 'Finished'
+                        else if (newPage > 0 && book.status === 'Not Started') updates.status = 'In Progress'
+                        await updateBook(book.id, updates)
+                      }}
+                      className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                      title="Increase page"
+                    >
+                      +
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        if (!book.totalPages) return
+                        await updateBook(book.id, { currentPage: Number(book.totalPages), status: 'Finished' })
+                      }}
+                      className="ml-auto px-3 py-1 rounded bg-green-100 hover:bg-green-200 text-sm text-green-700"
+                    >
+                      Mark Finished
+                    </button>
+                  </div>
                 </div>
               )}
               

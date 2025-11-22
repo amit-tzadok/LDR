@@ -30,39 +30,40 @@ export default function Home() {
   const [showHomeBanner, setShowHomeBanner] = useState(false)
   const [isNewUser, setIsNewUser] = useState(false)
 
-  // Check if this is a new user without a couple and show welcome modal
+  // Check if this is a new user and show welcome/banner only when user is not in any couple
   useEffect(() => {
-    if (!coupleCode && currentUser) {
-      const hidden = sessionStorage.getItem(`hideHomeBanner_${currentUser.uid}`)
-      // determine if the user is recently created ("just signed up")
-      const unsubProfile = subscribeUserProfile(currentUser.uid, (profile) => {
-        if (profile && profile.createdAt) {
-          // Firestore serverTimestamp may be a Timestamp object with toDate()
-          const created = profile.createdAt?.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt)
-          const ageMs = Date.now() - created.getTime()
-          // Consider "just signed up" as within the last 24 hours
-          const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
-          const recent = ageMs >= 0 && ageMs <= TWENTY_FOUR_HOURS
-          setIsNewUser(recent)
-          setShowHomeBanner(recent && !hidden)
-        } else {
-          // If no profile data, default to not showing the banner
-          setIsNewUser(false)
-          setShowHomeBanner(false)
-        }
-      })
+    if (!currentUser) return
+    const hidden = sessionStorage.getItem(`hideHomeBanner_${currentUser.uid}`)
 
-      const hasSeenWelcome = sessionStorage.getItem(`hasSeenWelcome_${currentUser.uid}`)
-      if (!hasSeenWelcome) {
-        // Avoid synchronous setState in effect to prevent cascading renders
-        setTimeout(() => {
-          setShowWelcomeModal(true)
-          sessionStorage.setItem(`hasSeenWelcome_${currentUser.uid}`, 'true')
-        }, 0)
+    // Subscribe to the user's profile to determine createdAt and whether they belong to any couples
+    const unsubProfile = subscribeUserProfile(currentUser.uid, (profile) => {
+      if (profile && profile.createdAt) {
+        const created = profile.createdAt?.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt)
+        const ageMs = Date.now() - created.getTime()
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
+        const recent = ageMs >= 0 && ageMs <= TWENTY_FOUR_HOURS
+        setIsNewUser(recent)
+
+        // Only show banner if user is recent AND not a member of any couple
+        const inCouples = Array.isArray(profile.couples) && profile.couples.length > 0
+        setShowHomeBanner(recent && !hidden && !inCouples)
+      } else {
+        setIsNewUser(false)
+        setShowHomeBanner(false)
       }
-      return () => unsubProfile && unsubProfile()
+    })
+
+    const hasSeenWelcome = sessionStorage.getItem(`hasSeenWelcome_${currentUser.uid}`)
+    if (!hasSeenWelcome && !coupleCode) {
+      // Avoid synchronous setState in effect to prevent cascading renders
+      setTimeout(() => {
+        setShowWelcomeModal(true)
+        sessionStorage.setItem(`hasSeenWelcome_${currentUser.uid}`, 'true')
+      }, 0)
     }
-  }, [coupleCode, currentUser])
+
+    return () => unsubProfile && unsubProfile()
+  }, [currentUser, coupleCode])
 
   useEffect(() => {
     if (!coupleCode) return
@@ -253,7 +254,7 @@ export default function Home() {
   return (
     <div className="space-y-8">
       {/* Empty-state / banner for users without a couple */}
-      {!coupleCode && currentUser && showHomeBanner && isNewUser && (
+      {currentUser && showHomeBanner && isNewUser && (
         <div className="card bg-gradient-to-r from-blue-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 border-2 border-blue-200 dark:border-pink-700 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
